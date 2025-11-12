@@ -5,7 +5,11 @@ import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/register_screen.dart';
+import '../../presentation/screens/events/event_detail_screen.dart';
+import '../../presentation/screens/events/event_list_screen.dart';
+import '../../presentation/screens/home/home_screen.dart';
 import '../../presentation/screens/profile/profile_screen.dart';
+import '../../presentation/screens/search/search_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
 
 /// Provider for GoRouter configuration
@@ -55,6 +59,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
 
+      // Event routes
+      GoRoute(
+        path: '/events',
+        builder: (context, state) => const EventListScreen(),
+      ),
+      GoRoute(
+        path: '/events/:id',
+        builder: (context, state) {
+          final eventId = state.pathParameters['id']!;
+          return EventDetailScreen(eventId: eventId);
+        },
+      ),
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => const SearchScreen(),
+      ),
+
       // Profile routes
       GoRoute(
         path: '/profile',
@@ -90,48 +111,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-/// Temporary home screen placeholder
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('MeroEvent'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => context.push('/profile'),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.event, size: 100),
-            const SizedBox(height: 24),
-            Text(
-              'Welcome to MeroEvent',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Phase 3: Authentication Complete',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 32),
-            const Text('Coming soon:'),
-            const SizedBox(height: 16),
-            const Text('• Event Discovery'),
-            const Text('• Event Creation'),
-            const Text('• Ticket Purchasing'),
-            const Text('• QR Code Scanning'),
-          ],
-        ),
-      ),
-    );
-  }
-}
