@@ -5,9 +5,11 @@ import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/register_screen.dart';
+import '../../presentation/screens/events/create_event_screen.dart';
 import '../../presentation/screens/events/event_detail_screen.dart';
 import '../../presentation/screens/events/event_list_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
+import '../../presentation/screens/organizer/organizer_dashboard_screen.dart';
 import '../../presentation/screens/profile/profile_screen.dart';
 import '../../presentation/screens/search/search_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
@@ -72,8 +74,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/create-event',
+        builder: (context, state) => const CreateEventScreen(),
+      ),
+      GoRoute(
         path: '/search',
         builder: (context, state) => const SearchScreen(),
+      ),
+
+      // Organizer routes
+      GoRoute(
+        path: '/organizer',
+        builder: (context, state) => const OrganizerDashboardScreen(),
       ),
 
       // Profile routes
