@@ -33,8 +33,8 @@ class SupabaseConfig {
   /// Auth state change stream
   static Stream<AuthState> get authStateChanges => client.auth.onAuthStateChange;
 
-  /// Database client
-  static PostgrestClient get database => client.from('');
+  // The 'database' getter has been removed as it's not needed.
+  // Use 'client' directly for all database interactions.
 
   /// Storage client
   static SupabaseStorageClient get storage => client.storage;
