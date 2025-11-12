@@ -3,115 +3,110 @@ import '../../domain/entities/event.dart';
 
 part 'event_model.g.dart';
 
-/// Event data model for JSON serialization
+/// Event data model for JSON serialization - matches Supabase schema
 @JsonSerializable(explicitToJson: true)
 class EventModel {
   final String id;
-  @JsonKey(name: 'organizer_id')
-  final String organizerId;
   final String title;
-  final String slug;
   final String? description;
   @JsonKey(name: 'short_description')
   final String? shortDescription;
-  final String category;
-  final String? subcategory;
-  final String status;
+  final String? category;
+  final List<String>? tags;
 
-  // Timing
-  @JsonKey(name: 'start_datetime')
-  final DateTime startDateTime;
-  @JsonKey(name: 'end_datetime')
-  final DateTime endDateTime;
-  final String timezone;
-  @JsonKey(name: 'is_recurring')
-  final bool isRecurring;
-  @JsonKey(name: 'recurrence_rule')
-  final Map<String, dynamic>? recurrenceRule;
+  // Organizer info
+  @JsonKey(name: 'organizer_id')
+  final String organizerId;
+  @JsonKey(name: 'organizer_name')
+  final String? organizerName;
+  @JsonKey(name: 'organizer_email')
+  final String? organizerEmail;
+  @JsonKey(name: 'organizer_phone')
+  final String? organizerPhone;
 
   // Location
+  final String? location;
+  final String? venue;
   @JsonKey(name: 'venue_id')
   final String? venueId;
-  @JsonKey(name: 'is_online')
-  final bool isOnline;
-  @JsonKey(name: 'is_hybrid')
-  final bool isHybrid;
-  @JsonKey(name: 'online_url')
-  final String? onlineUrl;
-  @JsonKey(name: 'location_name')
-  final String? locationName;
   final String? address;
   final String? city;
-  @JsonKey(name: 'state_province')
-  final String? stateProvince;
-  final String country;
+  final String? state;
+  final String? country;
   @JsonKey(name: 'postal_code')
   final String? postalCode;
   final double? latitude;
   final double? longitude;
 
+  // Date and time
+  @JsonKey(name: 'start_datetime')
+  final DateTime startDatetime;
+  @JsonKey(name: 'end_datetime')
+  final DateTime endDatetime;
+  final String? timezone;
+
   // Media
+  @JsonKey(name: 'image_url')
+  final String? imageUrl;
   @JsonKey(name: 'cover_image_url')
   final String? coverImageUrl;
-  @JsonKey(name: 'thumbnail_url')
-  final String? thumbnailUrl;
-  @JsonKey(name: 'gallery_images')
-  final List<String>? galleryImages;
   @JsonKey(name: 'video_url')
   final String? videoUrl;
+  @JsonKey(name: 'gallery_images')
+  final List<String>? galleryImages;
 
-  // Capacity & Pricing
-  @JsonKey(name: 'max_capacity')
-  final int? maxCapacity;
-  @JsonKey(name: 'current_attendees')
-  final int currentAttendees;
-  @JsonKey(name: 'min_ticket_price')
-  final double? minTicketPrice;
-  @JsonKey(name: 'max_ticket_price')
-  final double? maxTicketPrice;
+  // Ticketing
+  @JsonKey(name: 'is_free')
+  final bool isFree;
+  @JsonKey(name: 'min_price')
+  final double? minPrice;
+  @JsonKey(name: 'max_price')
+  final double? maxPrice;
   final String currency;
 
-  // Features
-  final Map<String, dynamic>? features;
-  final List<String>? tags;
-  @JsonKey(name: 'age_restriction')
-  final int? ageRestriction;
-  @JsonKey(name: 'dress_code')
-  final String? dressCode;
+  // Capacity
+  final int? capacity;
+  @JsonKey(name: 'remaining_capacity')
+  final int? remainingCapacity;
+  @JsonKey(name: 'is_sold_out')
+  final bool isSoldOut;
 
-  // SEO
-  @JsonKey(name: 'meta_title')
-  final String? metaTitle;
-  @JsonKey(name: 'meta_description')
-  final String? metaDescription;
-
-  // Social & Engagement
-  @JsonKey(name: 'view_count')
-  final int viewCount;
-  @JsonKey(name: 'like_count')
-  final int likeCount;
-  @JsonKey(name: 'share_count')
-  final int shareCount;
-  @JsonKey(name: 'average_rating')
-  final double? averageRating;
-  @JsonKey(name: 'total_reviews')
-  final int totalReviews;
-
-  // Settings
+  // Status
+  final String status;
+  @JsonKey(name: 'is_published')
+  final bool isPublished;
+  @JsonKey(name: 'is_featured')
+  final bool isFeatured;
   @JsonKey(name: 'is_private')
   final bool isPrivate;
-  @JsonKey(name: 'requires_approval')
-  final bool requiresApproval;
-  @JsonKey(name: 'allow_waitlist')
-  final bool allowWaitlist;
-  @JsonKey(name: 'show_attendees')
-  final bool showAttendees;
-  @JsonKey(name: 'allow_refunds')
-  final bool allowRefunds;
+
+  // Additional info
+  @JsonKey(name: 'age_restriction')
+  final String? ageRestriction;
+  @JsonKey(name: 'dress_code')
+  final String? dressCode;
   @JsonKey(name: 'refund_policy')
   final String? refundPolicy;
-  @JsonKey(name: 'terms_conditions')
-  final String? termsConditions;
+  @JsonKey(name: 'terms_and_conditions')
+  final String? termsAndConditions;
+  @JsonKey(name: 'external_url')
+  final String? externalUrl;
+
+  // Social engagement
+  @JsonKey(name: 'views_count')
+  final int viewsCount;
+  @JsonKey(name: 'likes_count')
+  final int likesCount;
+  @JsonKey(name: 'shares_count')
+  final int sharesCount;
+  @JsonKey(name: 'attendees_count')
+  final int attendeesCount;
+  @JsonKey(name: 'interested_count')
+  final int interestedCount;
+
+  // Metadata
+  final Map<String, dynamic>? metadata;
+  final Map<String, dynamic>? settings;
 
   // Timestamps
   @JsonKey(name: 'created_at')
@@ -123,58 +118,55 @@ class EventModel {
 
   const EventModel({
     required this.id,
-    required this.organizerId,
     required this.title,
-    required this.slug,
     this.description,
     this.shortDescription,
-    required this.category,
-    this.subcategory,
-    required this.status,
-    required this.startDateTime,
-    required this.endDateTime,
-    required this.timezone,
-    this.isRecurring = false,
-    this.recurrenceRule,
+    this.category,
+    this.tags,
+    required this.organizerId,
+    this.organizerName,
+    this.organizerEmail,
+    this.organizerPhone,
+    this.location,
+    this.venue,
     this.venueId,
-    this.isOnline = false,
-    this.isHybrid = false,
-    this.onlineUrl,
-    this.locationName,
     this.address,
     this.city,
-    this.stateProvince,
-    required this.country,
+    this.state,
+    this.country,
     this.postalCode,
     this.latitude,
     this.longitude,
+    required this.startDatetime,
+    required this.endDatetime,
+    this.timezone,
+    this.imageUrl,
     this.coverImageUrl,
-    this.thumbnailUrl,
-    this.galleryImages,
     this.videoUrl,
-    this.maxCapacity,
-    this.currentAttendees = 0,
-    this.minTicketPrice,
-    this.maxTicketPrice,
+    this.galleryImages,
+    this.isFree = false,
+    this.minPrice,
+    this.maxPrice,
     this.currency = 'USD',
-    this.features,
-    this.tags,
+    this.capacity,
+    this.remainingCapacity,
+    this.isSoldOut = false,
+    required this.status,
+    this.isPublished = false,
+    this.isFeatured = false,
+    this.isPrivate = false,
     this.ageRestriction,
     this.dressCode,
-    this.metaTitle,
-    this.metaDescription,
-    this.viewCount = 0,
-    this.likeCount = 0,
-    this.shareCount = 0,
-    this.averageRating,
-    this.totalReviews = 0,
-    this.isPrivate = false,
-    this.requiresApproval = false,
-    this.allowWaitlist = true,
-    this.showAttendees = true,
-    this.allowRefunds = true,
     this.refundPolicy,
-    this.termsConditions,
+    this.termsAndConditions,
+    this.externalUrl,
+    this.viewsCount = 0,
+    this.likesCount = 0,
+    this.sharesCount = 0,
+    this.attendeesCount = 0,
+    this.interestedCount = 0,
+    this.metadata,
+    this.settings,
     required this.createdAt,
     required this.updatedAt,
     this.publishedAt,
@@ -191,58 +183,55 @@ class EventModel {
   Event toEntity() {
     return Event(
       id: id,
-      organizerId: organizerId,
       title: title,
-      slug: slug,
       description: description,
       shortDescription: shortDescription,
       category: category,
-      subcategory: subcategory,
-      status: status,
-      startDateTime: startDateTime,
-      endDateTime: endDateTime,
-      timezone: timezone,
-      isRecurring: isRecurring,
-      recurrenceRule: recurrenceRule,
+      tags: tags,
+      organizerId: organizerId,
+      organizerName: organizerName,
+      organizerEmail: organizerEmail,
+      organizerPhone: organizerPhone,
+      location: location,
+      venue: venue,
       venueId: venueId,
-      isOnline: isOnline,
-      isHybrid: isHybrid,
-      onlineUrl: onlineUrl,
-      locationName: locationName,
       address: address,
       city: city,
-      stateProvince: stateProvince,
+      state: state,
       country: country,
       postalCode: postalCode,
       latitude: latitude,
       longitude: longitude,
+      startDatetime: startDatetime,
+      endDatetime: endDatetime,
+      timezone: timezone,
+      imageUrl: imageUrl,
       coverImageUrl: coverImageUrl,
-      thumbnailUrl: thumbnailUrl,
-      galleryImages: galleryImages,
       videoUrl: videoUrl,
-      maxCapacity: maxCapacity,
-      currentAttendees: currentAttendees,
-      minTicketPrice: minTicketPrice,
-      maxTicketPrice: maxTicketPrice,
+      galleryImages: galleryImages,
+      isFree: isFree,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
       currency: currency,
-      features: features,
-      tags: tags,
+      capacity: capacity,
+      remainingCapacity: remainingCapacity,
+      isSoldOut: isSoldOut,
+      status: status,
+      isPublished: isPublished,
+      isFeatured: isFeatured,
+      isPrivate: isPrivate,
       ageRestriction: ageRestriction,
       dressCode: dressCode,
-      metaTitle: metaTitle,
-      metaDescription: metaDescription,
-      viewCount: viewCount,
-      likeCount: likeCount,
-      shareCount: shareCount,
-      averageRating: averageRating,
-      totalReviews: totalReviews,
-      isPrivate: isPrivate,
-      requiresApproval: requiresApproval,
-      allowWaitlist: allowWaitlist,
-      showAttendees: showAttendees,
-      allowRefunds: allowRefunds,
       refundPolicy: refundPolicy,
-      termsConditions: termsConditions,
+      termsAndConditions: termsAndConditions,
+      externalUrl: externalUrl,
+      viewsCount: viewsCount,
+      likesCount: likesCount,
+      sharesCount: sharesCount,
+      attendeesCount: attendeesCount,
+      interestedCount: interestedCount,
+      metadata: metadata,
+      settings: settings,
       createdAt: createdAt,
       updatedAt: updatedAt,
       publishedAt: publishedAt,
@@ -253,58 +242,55 @@ class EventModel {
   factory EventModel.fromEntity(Event entity) {
     return EventModel(
       id: entity.id,
-      organizerId: entity.organizerId,
       title: entity.title,
-      slug: entity.slug,
       description: entity.description,
       shortDescription: entity.shortDescription,
       category: entity.category,
-      subcategory: entity.subcategory,
-      status: entity.status,
-      startDateTime: entity.startDateTime,
-      endDateTime: entity.endDateTime,
-      timezone: entity.timezone,
-      isRecurring: entity.isRecurring,
-      recurrenceRule: entity.recurrenceRule,
+      tags: entity.tags,
+      organizerId: entity.organizerId,
+      organizerName: entity.organizerName,
+      organizerEmail: entity.organizerEmail,
+      organizerPhone: entity.organizerPhone,
+      location: entity.location,
+      venue: entity.venue,
       venueId: entity.venueId,
-      isOnline: entity.isOnline,
-      isHybrid: entity.isHybrid,
-      onlineUrl: entity.onlineUrl,
-      locationName: entity.locationName,
       address: entity.address,
       city: entity.city,
-      stateProvince: entity.stateProvince,
+      state: entity.state,
       country: entity.country,
       postalCode: entity.postalCode,
       latitude: entity.latitude,
       longitude: entity.longitude,
+      startDatetime: entity.startDatetime,
+      endDatetime: entity.endDatetime,
+      timezone: entity.timezone,
+      imageUrl: entity.imageUrl,
       coverImageUrl: entity.coverImageUrl,
-      thumbnailUrl: entity.thumbnailUrl,
-      galleryImages: entity.galleryImages,
       videoUrl: entity.videoUrl,
-      maxCapacity: entity.maxCapacity,
-      currentAttendees: entity.currentAttendees,
-      minTicketPrice: entity.minTicketPrice,
-      maxTicketPrice: entity.maxTicketPrice,
+      galleryImages: entity.galleryImages,
+      isFree: entity.isFree,
+      minPrice: entity.minPrice,
+      maxPrice: entity.maxPrice,
       currency: entity.currency,
-      features: entity.features,
-      tags: entity.tags,
+      capacity: entity.capacity,
+      remainingCapacity: entity.remainingCapacity,
+      isSoldOut: entity.isSoldOut,
+      status: entity.status,
+      isPublished: entity.isPublished,
+      isFeatured: entity.isFeatured,
+      isPrivate: entity.isPrivate,
       ageRestriction: entity.ageRestriction,
       dressCode: entity.dressCode,
-      metaTitle: entity.metaTitle,
-      metaDescription: entity.metaDescription,
-      viewCount: entity.viewCount,
-      likeCount: entity.likeCount,
-      shareCount: entity.shareCount,
-      averageRating: entity.averageRating,
-      totalReviews: entity.totalReviews,
-      isPrivate: entity.isPrivate,
-      requiresApproval: entity.requiresApproval,
-      allowWaitlist: entity.allowWaitlist,
-      showAttendees: entity.showAttendees,
-      allowRefunds: entity.allowRefunds,
       refundPolicy: entity.refundPolicy,
-      termsConditions: entity.termsConditions,
+      termsAndConditions: entity.termsAndConditions,
+      externalUrl: entity.externalUrl,
+      viewsCount: entity.viewsCount,
+      likesCount: entity.likesCount,
+      sharesCount: entity.sharesCount,
+      attendeesCount: entity.attendeesCount,
+      interestedCount: entity.interestedCount,
+      metadata: entity.metadata,
+      settings: entity.settings,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       publishedAt: entity.publishedAt,

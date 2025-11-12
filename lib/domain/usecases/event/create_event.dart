@@ -15,7 +15,7 @@ class CreateEvent {
       return Left(ValidationFailure(message: 'Event title is required'));
     }
 
-    if (event.startDateTime.isAfter(event.endDateTime)) {
+    if (event.startDatetime.isAfter(event.endDatetime)) {
       return Left(ValidationFailure(
         message: 'End date must be after start date',
       ));

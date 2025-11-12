@@ -123,7 +123,7 @@ class _OrganizerDashboardScreenState
     final totalEvents = events.length;
     final totalTicketsSold = events.fold<int>(
       0,
-      (sum, event) => sum + (event.attendeesCount ?? 0),
+      (sum, event) => sum + ((event.attendeesCount ?? 0) as int),
     );
     final totalRevenue = events.fold<double>(
       0,

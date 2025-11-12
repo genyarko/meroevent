@@ -238,8 +238,8 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
           .from('events')
           .select('*')
           .eq('status', 'published')
-          .order('view_count', ascending: false)
-          .order('like_count', ascending: false)
+          .order('views_count', ascending: false)
+          .order('likes_count', ascending: false)
           .limit(limit ?? 10);
 
       return (response as List)
@@ -258,9 +258,13 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   @override
   Future<EventModel> createEvent(EventModel event) async {
     try {
+      // Remove id from JSON to let database auto-generate UUID
+      final eventJson = event.toJson();
+      eventJson.remove('id');
+
       final response = await _client
           .from('events')
-          .insert(event.toJson())
+          .insert(eventJson)
           .select()
           .single();
 

@@ -1,76 +1,77 @@
 import 'package:equatable/equatable.dart';
 
-/// Event entity representing a business event
+/// Event entity representing a business event - matches Supabase schema
 class Event extends Equatable {
   final String id;
-  final String organizerId;
   final String title;
-  final String slug;
   final String? description;
   final String? shortDescription;
-  final String category;
-  final String? subcategory;
-  final String status; // draft, published, cancelled, completed
+  final String? category;
+  final List<String>? tags;
 
-  // Timing
-  final DateTime startDateTime;
-  final DateTime endDateTime;
-  final String timezone;
-  final bool isRecurring;
-  final Map<String, dynamic>? recurrenceRule;
+  // Organizer info
+  final String organizerId;
+  final String? organizerName;
+  final String? organizerEmail;
+  final String? organizerPhone;
 
   // Location
+  final String? location;
+  final String? venue;
   final String? venueId;
-  final bool isOnline;
-  final bool isHybrid;
-  final String? onlineUrl;
-  final String? locationName;
   final String? address;
   final String? city;
-  final String? stateProvince;
-  final String country;
+  final String? state;
+  final String? country;
   final String? postalCode;
   final double? latitude;
   final double? longitude;
 
-  // Media
-  final String? coverImageUrl;
-  final String? thumbnailUrl;
-  final List<String>? galleryImages;
-  final String? videoUrl;
+  // Date and time
+  final DateTime startDatetime;
+  final DateTime endDatetime;
+  final String? timezone;
 
-  // Capacity & Pricing
-  final int? maxCapacity;
-  final int currentAttendees;
-  final double? minTicketPrice;
-  final double? maxTicketPrice;
+  // Media
+  final String? imageUrl;
+  final String? coverImageUrl;
+  final String? videoUrl;
+  final List<String>? galleryImages;
+
+  // Ticketing
+  final bool isFree;
+  final double? minPrice;
+  final double? maxPrice;
   final String currency;
 
-  // Features
-  final Map<String, dynamic>? features;
-  final List<String>? tags;
-  final int? ageRestriction;
-  final String? dressCode;
+  // Capacity
+  final int? capacity;
+  final int? remainingCapacity;
+  final bool isSoldOut;
 
-  // SEO & Discovery
-  final String? metaTitle;
-  final String? metaDescription;
-
-  // Social & Engagement
-  final int viewCount;
-  final int likeCount;
-  final int shareCount;
-  final double? averageRating;
-  final int totalReviews;
-
-  // Settings
+  // Status
+  final String status; // draft, published, cancelled, completed
+  final bool isPublished;
+  final bool isFeatured;
   final bool isPrivate;
-  final bool requiresApproval;
-  final bool allowWaitlist;
-  final bool showAttendees;
-  final bool allowRefunds;
+
+  // Additional info
+  final String? ageRestriction;
+  final String? dressCode;
   final String? refundPolicy;
-  final String? termsConditions;
+  final String? termsAndConditions;
+  final String? externalUrl;
+
+  // Social engagement
+  final int viewsCount;
+  final int likesCount;
+  final int sharesCount;
+  final int attendeesCount;
+  final int interestedCount;
+
+  // Metadata
+  final Map<String, dynamic>? metadata;
+  final Map<String, dynamic>? settings;
 
   // Timestamps
   final DateTime createdAt;
@@ -79,211 +80,184 @@ class Event extends Equatable {
 
   const Event({
     required this.id,
-    required this.organizerId,
     required this.title,
-    required this.slug,
     this.description,
     this.shortDescription,
-    required this.category,
-    this.subcategory,
-    required this.status,
-    required this.startDateTime,
-    required this.endDateTime,
-    required this.timezone,
-    this.isRecurring = false,
-    this.recurrenceRule,
+    this.category,
+    this.tags,
+    required this.organizerId,
+    this.organizerName,
+    this.organizerEmail,
+    this.organizerPhone,
+    this.location,
+    this.venue,
     this.venueId,
-    this.isOnline = false,
-    this.isHybrid = false,
-    this.onlineUrl,
-    this.locationName,
     this.address,
     this.city,
-    this.stateProvince,
-    required this.country,
+    this.state,
+    this.country,
     this.postalCode,
     this.latitude,
     this.longitude,
+    required this.startDatetime,
+    required this.endDatetime,
+    this.timezone,
+    this.imageUrl,
     this.coverImageUrl,
-    this.thumbnailUrl,
-    this.galleryImages,
     this.videoUrl,
-    this.maxCapacity,
-    this.currentAttendees = 0,
-    this.minTicketPrice,
-    this.maxTicketPrice,
+    this.galleryImages,
+    this.isFree = false,
+    this.minPrice,
+    this.maxPrice,
     this.currency = 'USD',
-    this.features,
-    this.tags,
+    this.capacity,
+    this.remainingCapacity,
+    this.isSoldOut = false,
+    required this.status,
+    this.isPublished = false,
+    this.isFeatured = false,
+    this.isPrivate = false,
     this.ageRestriction,
     this.dressCode,
-    this.metaTitle,
-    this.metaDescription,
-    this.viewCount = 0,
-    this.likeCount = 0,
-    this.shareCount = 0,
-    this.averageRating,
-    this.totalReviews = 0,
-    this.isPrivate = false,
-    this.requiresApproval = false,
-    this.allowWaitlist = true,
-    this.showAttendees = true,
-    this.allowRefunds = true,
     this.refundPolicy,
-    this.termsConditions,
+    this.termsAndConditions,
+    this.externalUrl,
+    this.viewsCount = 0,
+    this.likesCount = 0,
+    this.sharesCount = 0,
+    this.attendeesCount = 0,
+    this.interestedCount = 0,
+    this.metadata,
+    this.settings,
     required this.createdAt,
     required this.updatedAt,
     this.publishedAt,
   });
 
   // Helper methods
-  bool get isPublished => status == 'published';
   bool get isDraft => status == 'draft';
   bool get isCancelled => status == 'cancelled';
   bool get isCompleted => status == 'completed';
-  bool get isPast => endDateTime.isBefore(DateTime.now());
-  bool get isUpcoming => startDateTime.isAfter(DateTime.now());
+  bool get isPast => endDatetime.isBefore(DateTime.now());
+  bool get isUpcoming => startDatetime.isAfter(DateTime.now());
   bool get isOngoing =>
-      startDateTime.isBefore(DateTime.now()) &&
-      endDateTime.isAfter(DateTime.now());
-  bool get isFree => minTicketPrice == null || minTicketPrice == 0;
-  bool get hasCapacity => maxCapacity == null || currentAttendees < maxCapacity!;
-  bool get isSoldOut =>
-      maxCapacity != null && currentAttendees >= maxCapacity!;
-
-  // Aliases for presentation layer compatibility
-  DateTime get startDatetime => startDateTime; // lowercase 't' alias
-  DateTime get endDatetime => endDateTime; // lowercase 't' alias
-  String? get imageUrl => coverImageUrl; // alias
-  String? get location => locationName; // alias
-  int get attendeesCount => currentAttendees; // alias
-  int get likesCount => likeCount; // alias
-  double? get minPrice => minTicketPrice; // alias
-  bool get isFeatured => viewCount > 100 || likeCount > 50; // heuristic for featured
-  int get viewsCount => viewCount; // alias
-  int? get capacity => maxCapacity; // alias
-  String? get organizerName => null; // Will be populated from organizer profile separately
-  String? get venue => locationName; // alias
+      startDatetime.isBefore(DateTime.now()) &&
+      endDatetime.isAfter(DateTime.now());
+  bool get hasCapacity => capacity == null || (remainingCapacity ?? 0) > 0;
 
   // Duration
-  Duration get duration => endDateTime.difference(startDateTime);
+  Duration get duration => endDatetime.difference(startDatetime);
 
   // Days until event
-  int get daysUntilEvent => startDateTime.difference(DateTime.now()).inDays;
+  int get daysUntilEvent => startDatetime.difference(DateTime.now()).inDays;
 
   // Copy with method
   Event copyWith({
     String? id,
-    String? organizerId,
     String? title,
-    String? slug,
     String? description,
     String? shortDescription,
     String? category,
-    String? subcategory,
-    String? status,
-    DateTime? startDateTime,
-    DateTime? endDateTime,
-    String? timezone,
-    bool? isRecurring,
-    Map<String, dynamic>? recurrenceRule,
+    List<String>? tags,
+    String? organizerId,
+    String? organizerName,
+    String? organizerEmail,
+    String? organizerPhone,
+    String? location,
+    String? venue,
     String? venueId,
-    bool? isOnline,
-    bool? isHybrid,
-    String? onlineUrl,
-    String? locationName,
     String? address,
     String? city,
-    String? stateProvince,
+    String? state,
     String? country,
     String? postalCode,
     double? latitude,
     double? longitude,
+    DateTime? startDatetime,
+    DateTime? endDatetime,
+    String? timezone,
+    String? imageUrl,
     String? coverImageUrl,
-    String? thumbnailUrl,
-    List<String>? galleryImages,
     String? videoUrl,
-    int? maxCapacity,
-    int? currentAttendees,
-    double? minTicketPrice,
-    double? maxTicketPrice,
+    List<String>? galleryImages,
+    bool? isFree,
+    double? minPrice,
+    double? maxPrice,
     String? currency,
-    Map<String, dynamic>? features,
-    List<String>? tags,
-    int? ageRestriction,
-    String? dressCode,
-    String? metaTitle,
-    String? metaDescription,
-    int? viewCount,
-    int? likeCount,
-    int? shareCount,
-    double? averageRating,
-    int? totalReviews,
+    int? capacity,
+    int? remainingCapacity,
+    bool? isSoldOut,
+    String? status,
+    bool? isPublished,
+    bool? isFeatured,
     bool? isPrivate,
-    bool? requiresApproval,
-    bool? allowWaitlist,
-    bool? showAttendees,
-    bool? allowRefunds,
+    String? ageRestriction,
+    String? dressCode,
     String? refundPolicy,
-    String? termsConditions,
+    String? termsAndConditions,
+    String? externalUrl,
+    int? viewsCount,
+    int? likesCount,
+    int? sharesCount,
+    int? attendeesCount,
+    int? interestedCount,
+    Map<String, dynamic>? metadata,
+    Map<String, dynamic>? settings,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? publishedAt,
   }) {
     return Event(
       id: id ?? this.id,
-      organizerId: organizerId ?? this.organizerId,
       title: title ?? this.title,
-      slug: slug ?? this.slug,
       description: description ?? this.description,
       shortDescription: shortDescription ?? this.shortDescription,
       category: category ?? this.category,
-      subcategory: subcategory ?? this.subcategory,
-      status: status ?? this.status,
-      startDateTime: startDateTime ?? this.startDateTime,
-      endDateTime: endDateTime ?? this.endDateTime,
-      timezone: timezone ?? this.timezone,
-      isRecurring: isRecurring ?? this.isRecurring,
-      recurrenceRule: recurrenceRule ?? this.recurrenceRule,
+      tags: tags ?? this.tags,
+      organizerId: organizerId ?? this.organizerId,
+      organizerName: organizerName ?? this.organizerName,
+      organizerEmail: organizerEmail ?? this.organizerEmail,
+      organizerPhone: organizerPhone ?? this.organizerPhone,
+      location: location ?? this.location,
+      venue: venue ?? this.venue,
       venueId: venueId ?? this.venueId,
-      isOnline: isOnline ?? this.isOnline,
-      isHybrid: isHybrid ?? this.isHybrid,
-      onlineUrl: onlineUrl ?? this.onlineUrl,
-      locationName: locationName ?? this.locationName,
       address: address ?? this.address,
       city: city ?? this.city,
-      stateProvince: stateProvince ?? this.stateProvince,
+      state: state ?? this.state,
       country: country ?? this.country,
       postalCode: postalCode ?? this.postalCode,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      startDatetime: startDatetime ?? this.startDatetime,
+      endDatetime: endDatetime ?? this.endDatetime,
+      timezone: timezone ?? this.timezone,
+      imageUrl: imageUrl ?? this.imageUrl,
       coverImageUrl: coverImageUrl ?? this.coverImageUrl,
-      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
-      galleryImages: galleryImages ?? this.galleryImages,
       videoUrl: videoUrl ?? this.videoUrl,
-      maxCapacity: maxCapacity ?? this.maxCapacity,
-      currentAttendees: currentAttendees ?? this.currentAttendees,
-      minTicketPrice: minTicketPrice ?? this.minTicketPrice,
-      maxTicketPrice: maxTicketPrice ?? this.maxTicketPrice,
+      galleryImages: galleryImages ?? this.galleryImages,
+      isFree: isFree ?? this.isFree,
+      minPrice: minPrice ?? this.minPrice,
+      maxPrice: maxPrice ?? this.maxPrice,
       currency: currency ?? this.currency,
-      features: features ?? this.features,
-      tags: tags ?? this.tags,
+      capacity: capacity ?? this.capacity,
+      remainingCapacity: remainingCapacity ?? this.remainingCapacity,
+      isSoldOut: isSoldOut ?? this.isSoldOut,
+      status: status ?? this.status,
+      isPublished: isPublished ?? this.isPublished,
+      isFeatured: isFeatured ?? this.isFeatured,
+      isPrivate: isPrivate ?? this.isPrivate,
       ageRestriction: ageRestriction ?? this.ageRestriction,
       dressCode: dressCode ?? this.dressCode,
-      metaTitle: metaTitle ?? this.metaTitle,
-      metaDescription: metaDescription ?? this.metaDescription,
-      viewCount: viewCount ?? this.viewCount,
-      likeCount: likeCount ?? this.likeCount,
-      shareCount: shareCount ?? this.shareCount,
-      averageRating: averageRating ?? this.averageRating,
-      totalReviews: totalReviews ?? this.totalReviews,
-      isPrivate: isPrivate ?? this.isPrivate,
-      requiresApproval: requiresApproval ?? this.requiresApproval,
-      allowWaitlist: allowWaitlist ?? this.allowWaitlist,
-      showAttendees: showAttendees ?? this.showAttendees,
-      allowRefunds: allowRefunds ?? this.allowRefunds,
       refundPolicy: refundPolicy ?? this.refundPolicy,
-      termsConditions: termsConditions ?? this.termsConditions,
+      termsAndConditions: termsAndConditions ?? this.termsAndConditions,
+      externalUrl: externalUrl ?? this.externalUrl,
+      viewsCount: viewsCount ?? this.viewsCount,
+      likesCount: likesCount ?? this.likesCount,
+      sharesCount: sharesCount ?? this.sharesCount,
+      attendeesCount: attendeesCount ?? this.attendeesCount,
+      interestedCount: interestedCount ?? this.interestedCount,
+      metadata: metadata ?? this.metadata,
+      settings: settings ?? this.settings,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       publishedAt: publishedAt ?? this.publishedAt,
@@ -293,58 +267,55 @@ class Event extends Equatable {
   @override
   List<Object?> get props => [
         id,
-        organizerId,
         title,
-        slug,
         description,
         shortDescription,
         category,
-        subcategory,
-        status,
-        startDateTime,
-        endDateTime,
-        timezone,
-        isRecurring,
-        recurrenceRule,
+        tags,
+        organizerId,
+        organizerName,
+        organizerEmail,
+        organizerPhone,
+        location,
+        venue,
         venueId,
-        isOnline,
-        isHybrid,
-        onlineUrl,
-        locationName,
         address,
         city,
-        stateProvince,
+        state,
         country,
         postalCode,
         latitude,
         longitude,
+        startDatetime,
+        endDatetime,
+        timezone,
+        imageUrl,
         coverImageUrl,
-        thumbnailUrl,
-        galleryImages,
         videoUrl,
-        maxCapacity,
-        currentAttendees,
-        minTicketPrice,
-        maxTicketPrice,
+        galleryImages,
+        isFree,
+        minPrice,
+        maxPrice,
         currency,
-        features,
-        tags,
+        capacity,
+        remainingCapacity,
+        isSoldOut,
+        status,
+        isPublished,
+        isFeatured,
+        isPrivate,
         ageRestriction,
         dressCode,
-        metaTitle,
-        metaDescription,
-        viewCount,
-        likeCount,
-        shareCount,
-        averageRating,
-        totalReviews,
-        isPrivate,
-        requiresApproval,
-        allowWaitlist,
-        showAttendees,
-        allowRefunds,
         refundPolicy,
-        termsConditions,
+        termsAndConditions,
+        externalUrl,
+        viewsCount,
+        likesCount,
+        sharesCount,
+        attendeesCount,
+        interestedCount,
+        metadata,
+        settings,
         createdAt,
         updatedAt,
         publishedAt,
