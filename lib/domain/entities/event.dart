@@ -151,6 +151,20 @@ class Event extends Equatable {
   bool get isSoldOut =>
       maxCapacity != null && currentAttendees >= maxCapacity!;
 
+  // Aliases for presentation layer compatibility
+  DateTime get startDatetime => startDateTime; // lowercase 't' alias
+  DateTime get endDatetime => endDateTime; // lowercase 't' alias
+  String? get imageUrl => coverImageUrl; // alias
+  String? get location => locationName; // alias
+  int get attendeesCount => currentAttendees; // alias
+  int get likesCount => likeCount; // alias
+  double? get minPrice => minTicketPrice; // alias
+  bool get isFeatured => viewCount > 100 || likeCount > 50; // heuristic for featured
+  int get viewsCount => viewCount; // alias
+  int? get capacity => maxCapacity; // alias
+  String? get organizerName => null; // Will be populated from organizer profile separately
+  String? get venue => locationName; // alias
+
   // Duration
   Duration get duration => endDateTime.difference(startDateTime);
 

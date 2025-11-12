@@ -14,6 +14,12 @@ class AppDimensions {
   static const double spacingXXXL = 32.0;
   static const double spacingHuge = 48.0;
 
+  // Spacing Aliases (for consistency with code)
+  static const double spacingSmall = spacingSM;
+  static const double spacingMedium = spacingMD;
+  static const double spacingLarge = spacingLG;
+  static const double spacingExtraLarge = spacingXL;
+
   // Padding
   static const double paddingXS = 4.0;
   static const double paddingSM = 8.0;
@@ -22,6 +28,11 @@ class AppDimensions {
   static const double paddingXL = 20.0;
   static const double paddingXXL = 24.0;
   static const double paddingXXXL = 32.0;
+
+  // Padding Aliases (for consistency with code)
+  static const double paddingSmall = paddingSM;
+  static const double paddingMedium = paddingMD;
+  static const double paddingLarge = paddingLG;
 
   // Margin
   static const double marginXS = 4.0;
@@ -39,6 +50,11 @@ class AppDimensions {
   static const double radiusXL = 20.0;
   static const double radiusXXL = 24.0;
   static const double radiusFull = 999.0;
+
+  // Radius Aliases (for consistency with code)
+  static const double radiusSmall = radiusSM;
+  static const double radiusMedium = radiusMD;
+  static const double radiusLarge = radiusLG;
 
   // Icon Sizes
   static const double iconXS = 12.0;

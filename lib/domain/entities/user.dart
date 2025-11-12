@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 /// User entity representing an authenticated user
+/// Merged entity supporting both dating app and event management app
 class User extends Equatable {
+  // Core Identity
   final String id;
   final String email;
   final String? phone;
@@ -11,29 +13,45 @@ class User extends Equatable {
   final DateTime? dateOfBirth;
   final String? gender;
 
-  // Location
+  // Location (used by both apps)
   final String? city;
   final String? country;
   final double? latitude;
   final double? longitude;
 
-  // Preferences
+  // Dating App Specific
+  final List<String>? icebreakerPrompts;
+  final String? relationshipIntent;
+  final String? educationLevel;
+  final String? communicationStyle;
+  final String? lifestyleChoice;
+  final bool lockdownEnabled;
+  final List<String>? imageUrls;
+
+  // Dating App - Login Streaks
+  final DateTime? lastLoginDate;
+  final int consecutiveLoginDays;
+  final int totalLoginDays;
+  final double matchProbabilityBoost;
+
+  // Premium (shared)
+  final bool isPremium;
+  final DateTime? premiumExpiresAt;
+
+  // Event App Specific
   final List<String>? interests;
   final Map<String, dynamic>? preferences;
   final String? language;
   final String? timezone;
+  final Map<String, String>? socialLinks;
+  final int karmaPoints;
 
-  // Settings
+  // Notifications (shared)
   final bool emailNotifications;
   final bool pushNotifications;
   final bool smsNotifications;
   final bool marketingEmails;
-
-  // Social
-  final Map<String, String>? socialLinks;
-
-  // Karma/Points
-  final int karmaPoints;
+  final String? fcmToken;
 
   // Verification
   final bool isEmailVerified;
@@ -58,16 +76,30 @@ class User extends Equatable {
     this.country,
     this.latitude,
     this.longitude,
+    this.icebreakerPrompts,
+    this.relationshipIntent,
+    this.educationLevel,
+    this.communicationStyle,
+    this.lifestyleChoice,
+    this.lockdownEnabled = false,
+    this.imageUrls,
+    this.lastLoginDate,
+    this.consecutiveLoginDays = 0,
+    this.totalLoginDays = 0,
+    this.matchProbabilityBoost = 1.0,
+    this.isPremium = false,
+    this.premiumExpiresAt,
     this.interests,
     this.preferences,
     this.language,
     this.timezone,
+    this.socialLinks,
+    this.karmaPoints = 0,
     this.emailNotifications = true,
     this.pushNotifications = true,
     this.smsNotifications = false,
     this.marketingEmails = true,
-    this.socialLinks,
-    this.karmaPoints = 0,
+    this.fcmToken,
     this.isEmailVerified = false,
     this.isPhoneVerified = false,
     this.isProfileComplete = false,
@@ -92,6 +124,14 @@ class User extends Equatable {
     return age;
   }
 
+  // Aliases for presentation layer compatibility
+  String? get phoneNumber => phone; // alias
+  String? get location => city != null && country != null
+      ? '$city, $country'
+      : city ?? country; // Combined location
+  int get totalEventsAttended => 0; // TODO: Track from attendance records
+  int get totalEventsCreated => 0; // TODO: Track from events created
+
   // Copy with method
   User copyWith({
     String? id,
@@ -106,16 +146,30 @@ class User extends Equatable {
     String? country,
     double? latitude,
     double? longitude,
+    List<String>? icebreakerPrompts,
+    String? relationshipIntent,
+    String? educationLevel,
+    String? communicationStyle,
+    String? lifestyleChoice,
+    bool? lockdownEnabled,
+    List<String>? imageUrls,
+    DateTime? lastLoginDate,
+    int? consecutiveLoginDays,
+    int? totalLoginDays,
+    double? matchProbabilityBoost,
+    bool? isPremium,
+    DateTime? premiumExpiresAt,
     List<String>? interests,
     Map<String, dynamic>? preferences,
     String? language,
     String? timezone,
+    Map<String, String>? socialLinks,
+    int? karmaPoints,
     bool? emailNotifications,
     bool? pushNotifications,
     bool? smsNotifications,
     bool? marketingEmails,
-    Map<String, String>? socialLinks,
-    int? karmaPoints,
+    String? fcmToken,
     bool? isEmailVerified,
     bool? isPhoneVerified,
     bool? isProfileComplete,
@@ -136,16 +190,30 @@ class User extends Equatable {
       country: country ?? this.country,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      icebreakerPrompts: icebreakerPrompts ?? this.icebreakerPrompts,
+      relationshipIntent: relationshipIntent ?? this.relationshipIntent,
+      educationLevel: educationLevel ?? this.educationLevel,
+      communicationStyle: communicationStyle ?? this.communicationStyle,
+      lifestyleChoice: lifestyleChoice ?? this.lifestyleChoice,
+      lockdownEnabled: lockdownEnabled ?? this.lockdownEnabled,
+      imageUrls: imageUrls ?? this.imageUrls,
+      lastLoginDate: lastLoginDate ?? this.lastLoginDate,
+      consecutiveLoginDays: consecutiveLoginDays ?? this.consecutiveLoginDays,
+      totalLoginDays: totalLoginDays ?? this.totalLoginDays,
+      matchProbabilityBoost: matchProbabilityBoost ?? this.matchProbabilityBoost,
+      isPremium: isPremium ?? this.isPremium,
+      premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
       interests: interests ?? this.interests,
       preferences: preferences ?? this.preferences,
       language: language ?? this.language,
       timezone: timezone ?? this.timezone,
+      socialLinks: socialLinks ?? this.socialLinks,
+      karmaPoints: karmaPoints ?? this.karmaPoints,
       emailNotifications: emailNotifications ?? this.emailNotifications,
       pushNotifications: pushNotifications ?? this.pushNotifications,
       smsNotifications: smsNotifications ?? this.smsNotifications,
       marketingEmails: marketingEmails ?? this.marketingEmails,
-      socialLinks: socialLinks ?? this.socialLinks,
-      karmaPoints: karmaPoints ?? this.karmaPoints,
+      fcmToken: fcmToken ?? this.fcmToken,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
@@ -169,16 +237,30 @@ class User extends Equatable {
         country,
         latitude,
         longitude,
+        icebreakerPrompts,
+        relationshipIntent,
+        educationLevel,
+        communicationStyle,
+        lifestyleChoice,
+        lockdownEnabled,
+        imageUrls,
+        lastLoginDate,
+        consecutiveLoginDays,
+        totalLoginDays,
+        matchProbabilityBoost,
+        isPremium,
+        premiumExpiresAt,
         interests,
         preferences,
         language,
         timezone,
+        socialLinks,
+        karmaPoints,
         emailNotifications,
         pushNotifications,
         smsNotifications,
         marketingEmails,
-        socialLinks,
-        karmaPoints,
+        fcmToken,
         isEmailVerified,
         isPhoneVerified,
         isProfileComplete,

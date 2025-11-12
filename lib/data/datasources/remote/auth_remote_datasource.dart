@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException, StorageException;
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase show AuthException, StorageException;
 import '../../../core/config/supabase_config.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../models/user_model.dart';
@@ -35,20 +36,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel> signInWithEmail(String email, String password) async {
     try {
+      print('🔐 Attempting sign in with email: $email');
       final response = await _client.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
       if (response.user == null) {
+        print('❌ Sign in failed: No user returned');
         throw AuthException(message: 'Sign in failed');
       }
 
+      print('✅ Auth successful, userId: ${response.user!.id}');
+      print('📋 Fetching user profile from database...');
+
       // Get user profile from database
-      return await _getUserProfile(response.user!.id);
-    } on AuthException catch (e) {
+      final profile = await _getUserProfile(response.user!.id);
+      print('✅ Profile loaded successfully');
+      return profile;
+    } on supabase.AuthException catch (e) {
+      print('❌ Supabase Auth Error: ${e.message}');
       throw AuthException(message: e.message);
     } catch (e) {
+      print('❌ Unexpected Error: $e');
       throw ServerException(message: e.toString());
     }
   }
@@ -70,42 +80,58 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw AuthException(message: 'Sign up failed');
       }
 
-      // Create user profile in database
+      // Create user profile in database (merged schema for both dating & events)
       final userModel = UserModel(
         id: response.user!.id,
         email: email,
         fullName: fullName,
-        username: null,
-        phoneNumber: null,
+        phone: null,
         dateOfBirth: null,
         gender: null,
         bio: null,
         avatarUrl: null,
-        location: null,
         city: null,
         country: null,
         latitude: null,
         longitude: null,
-        preferredLanguage: 'en',
-        preferredCurrency: 'USD',
+        // Dating app fields (set defaults)
+        icebreakerPrompts: null,
+        relationshipIntent: null,
+        educationLevel: null,
+        communicationStyle: null,
+        lifestyleChoice: null,
+        lockdownEnabled: false,
+        imageUrls: null,
+        lastLoginDate: DateTime.now(),
+        consecutiveLoginDays: 0,
+        totalLoginDays: 0,
+        matchProbabilityBoost: 1.0,
+        isPremium: false,
+        premiumExpiresAt: null,
+        // Event app fields
+        interests: null,
+        language: 'en',
+        timezone: null,
         preferences: {},
         socialLinks: {},
+        karmaPoints: 0,
+        // Notifications
+        fcmToken: null,
+        // Verification
         isEmailVerified: false,
         isPhoneVerified: false,
-        karmaPoints: 0,
-        totalEventsAttended: 0,
-        totalEventsCreated: 0,
-        accountStatus: 'active',
+        isProfileComplete: false,
+        // Timestamps
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         lastLoginAt: DateTime.now(),
       );
 
-      // Insert user profile
-      await _client.from('users').insert(userModel.toJson());
+      // Insert user profile into profiles table (shared by both apps)
+      await _client.from('profiles').insert(userModel.toJson());
 
       return userModel;
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
@@ -133,7 +159,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       return await _getUserProfile(user.id);
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -159,7 +185,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       return await _getUserProfile(user.id);
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -185,7 +211,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       return await _getUserProfile(user.id);
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -196,7 +222,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -233,7 +259,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         email,
         redirectTo: 'meroevent://auth/reset-password',
       );
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -248,7 +274,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _client.auth.updateUser(
         UserAttributes(password: newPassword),
       );
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -274,7 +300,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _client.auth.updateUser(
         UserAttributes(password: newPassword),
       );
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -285,7 +311,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> updateProfile(UserModel user) async {
     try {
       final response = await _client
-          .from('users')
+          .from('profiles')
           .update(user.toJson())
           .eq('id', user.id)
           .select()
@@ -325,13 +351,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final publicUrl = _client.storage.from('avatars').getPublicUrl(fileName);
 
       // Update user profile with new avatar URL
-      await _client.from('users').update({
+      await _client.from('profiles').update({
         'avatar_url': publicUrl,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', user.id);
 
       return publicUrl;
-    } on StorageException catch (e) {
+    } on supabase.StorageException catch (e) {
       throw ServerException(message: e.message);
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
@@ -354,12 +380,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // Update user profile
       final user = _client.auth.currentUser;
       if (user != null) {
-        await _client.from('users').update({
+        await _client.from('profiles').update({
           'is_email_verified': true,
           'updated_at': DateTime.now().toIso8601String(),
         }).eq('id', user.id);
       }
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -379,7 +405,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         type: OtpType.email,
         email: user.email!,
       );
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -401,11 +427,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       // Delete user profile from database
-      await _client.from('users').delete().eq('id', user.id);
+      await _client.from('profiles').delete().eq('id', user.id);
 
       // Delete auth user (this requires admin privileges via RPC)
       await _client.rpc('delete_user', params: {'user_id': user.id});
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       throw AuthException(message: e.message);
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
@@ -431,14 +457,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   /// Helper method to get user profile from database
   Future<UserModel> _getUserProfile(String userId) async {
     try {
+      print('🔍 Querying profiles table for userId: $userId');
       final response = await _client
-          .from('users')
+          .from('profiles')
           .select('*')
           .eq('id', userId)
           .single();
 
-      return UserModel.fromJson(response);
+      print('📦 Raw profile data received: ${response.toString().substring(0, 200)}...');
+      print('🔄 Attempting to deserialize UserModel...');
+
+      final userModel = UserModel.fromJson(response);
+      print('✅ UserModel deserialized successfully');
+      return userModel;
     } on PostgrestException catch (e) {
+      print('❌ Postgrest Error: ${e.code} - ${e.message}');
       if (e.code == 'PGRST116') {
         throw NotFoundException(message: 'User profile not found');
       }
@@ -446,6 +479,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         message: e.message,
         code: int.tryParse(e.code ?? ''),
       );
+    } catch (e, stackTrace) {
+      print('❌ Error deserializing profile: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 }

@@ -303,9 +303,9 @@ class _EventDetailView extends StatelessWidget {
                                 if (event.ageRestriction != null)
                                   _buildInfoListTile(
                                     theme,
-                                    Icons.18_up_rating,
+                                    Icons.warning,
                                     'Age Restriction',
-                                    event.ageRestriction!,
+                                    '${event.ageRestriction}+',
                                   ),
                                 if (event.dressCode != null)
                                   _buildInfoListTile(

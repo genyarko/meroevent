@@ -1,11 +1,14 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../../domain/entities/user.dart';
+import 'json_converters.dart';
 
 part 'user_model.g.dart';
 
 /// User data model for JSON serialization
+/// Merged model supporting both dating app and event management app
 @JsonSerializable(explicitToJson: true)
 class UserModel {
+  // Core Identity
   final String id;
   final String email;
   final String? phone;
@@ -17,32 +20,79 @@ class UserModel {
   @JsonKey(name: 'date_of_birth')
   final DateTime? dateOfBirth;
   final String? gender;
+
+  // Location (used by both apps)
   final String? city;
   final String? country;
   final double? latitude;
   final double? longitude;
+
+  // Dating App Specific
+  @JsonKey(name: 'icebreaker_prompts')
+  @IcebreakerPromptsConverter()
+  final List<String>? icebreakerPrompts;
+  @JsonKey(name: 'relationship_intent')
+  final String? relationshipIntent;
+  @JsonKey(name: 'education_level')
+  final String? educationLevel;
+  @JsonKey(name: 'communication_style')
+  final String? communicationStyle;
+  @JsonKey(name: 'lifestyle_choice')
+  final String? lifestyleChoice;
+  @JsonKey(name: 'lockdown_enabled', defaultValue: false)
+  final bool lockdownEnabled;
+  @JsonKey(name: 'image_urls')
+  @ImageUrlsConverter()
+  final List<String>? imageUrls;
+
+  // Dating App - Login Streaks
+  @JsonKey(name: 'last_login_date')
+  final DateTime? lastLoginDate;
+  @JsonKey(name: 'consecutive_login_days', defaultValue: 0)
+  final int consecutiveLoginDays;
+  @JsonKey(name: 'total_login_days', defaultValue: 0)
+  final int totalLoginDays;
+  @JsonKey(name: 'match_probability_boost', defaultValue: 1.0)
+  final double matchProbabilityBoost;
+
+  // Premium (shared)
+  @JsonKey(name: 'is_premium', defaultValue: false)
+  final bool isPremium;
+  @JsonKey(name: 'premium_expires_at')
+  final DateTime? premiumExpiresAt;
+
+  // Event App Specific
+  @InterestsConverter()
   final List<String>? interests;
   final Map<String, dynamic>? preferences;
   final String? language;
   final String? timezone;
-  @JsonKey(name: 'email_notifications')
-  final bool emailNotifications;
-  @JsonKey(name: 'push_notifications')
-  final bool pushNotifications;
-  @JsonKey(name: 'sms_notifications')
-  final bool smsNotifications;
-  @JsonKey(name: 'marketing_emails')
-  final bool marketingEmails;
   @JsonKey(name: 'social_links')
   final Map<String, String>? socialLinks;
-  @JsonKey(name: 'karma_points')
+  @JsonKey(name: 'karma_points', defaultValue: 0)
   final int karmaPoints;
-  @JsonKey(name: 'is_email_verified')
+
+  // Notifications (shared)
+  @JsonKey(name: 'email_notifications', defaultValue: true)
+  final bool emailNotifications;
+  @JsonKey(name: 'push_notifications', defaultValue: true)
+  final bool pushNotifications;
+  @JsonKey(name: 'sms_notifications', defaultValue: false)
+  final bool smsNotifications;
+  @JsonKey(name: 'marketing_emails', defaultValue: true)
+  final bool marketingEmails;
+  @JsonKey(name: 'fcm_token')
+  final String? fcmToken;
+
+  // Verification
+  @JsonKey(name: 'is_email_verified', defaultValue: false)
   final bool isEmailVerified;
-  @JsonKey(name: 'is_phone_verified')
+  @JsonKey(name: 'is_phone_verified', defaultValue: false)
   final bool isPhoneVerified;
-  @JsonKey(name: 'is_profile_complete')
+  @JsonKey(name: 'is_profile_complete', defaultValue: false)
   final bool isProfileComplete;
+
+  // Timestamps
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @JsonKey(name: 'updated_at')
@@ -63,16 +113,30 @@ class UserModel {
     this.country,
     this.latitude,
     this.longitude,
+    this.icebreakerPrompts,
+    this.relationshipIntent,
+    this.educationLevel,
+    this.communicationStyle,
+    this.lifestyleChoice,
+    this.lockdownEnabled = false,
+    this.imageUrls,
+    this.lastLoginDate,
+    this.consecutiveLoginDays = 0,
+    this.totalLoginDays = 0,
+    this.matchProbabilityBoost = 1.0,
+    this.isPremium = false,
+    this.premiumExpiresAt,
     this.interests,
     this.preferences,
     this.language,
     this.timezone,
+    this.socialLinks,
+    this.karmaPoints = 0,
     this.emailNotifications = true,
     this.pushNotifications = true,
     this.smsNotifications = false,
     this.marketingEmails = true,
-    this.socialLinks,
-    this.karmaPoints = 0,
+    this.fcmToken,
     this.isEmailVerified = false,
     this.isPhoneVerified = false,
     this.isProfileComplete = false,
@@ -99,16 +163,30 @@ class UserModel {
         country: country,
         latitude: latitude,
         longitude: longitude,
+        icebreakerPrompts: icebreakerPrompts,
+        relationshipIntent: relationshipIntent,
+        educationLevel: educationLevel,
+        communicationStyle: communicationStyle,
+        lifestyleChoice: lifestyleChoice,
+        lockdownEnabled: lockdownEnabled,
+        imageUrls: imageUrls,
+        lastLoginDate: lastLoginDate,
+        consecutiveLoginDays: consecutiveLoginDays,
+        totalLoginDays: totalLoginDays,
+        matchProbabilityBoost: matchProbabilityBoost,
+        isPremium: isPremium,
+        premiumExpiresAt: premiumExpiresAt,
         interests: interests,
         preferences: preferences,
         language: language,
         timezone: timezone,
+        socialLinks: socialLinks,
+        karmaPoints: karmaPoints,
         emailNotifications: emailNotifications,
         pushNotifications: pushNotifications,
         smsNotifications: smsNotifications,
         marketingEmails: marketingEmails,
-        socialLinks: socialLinks,
-        karmaPoints: karmaPoints,
+        fcmToken: fcmToken,
         isEmailVerified: isEmailVerified,
         isPhoneVerified: isPhoneVerified,
         isProfileComplete: isProfileComplete,
@@ -130,16 +208,30 @@ class UserModel {
         country: entity.country,
         latitude: entity.latitude,
         longitude: entity.longitude,
+        icebreakerPrompts: entity.icebreakerPrompts,
+        relationshipIntent: entity.relationshipIntent,
+        educationLevel: entity.educationLevel,
+        communicationStyle: entity.communicationStyle,
+        lifestyleChoice: entity.lifestyleChoice,
+        lockdownEnabled: entity.lockdownEnabled,
+        imageUrls: entity.imageUrls,
+        lastLoginDate: entity.lastLoginDate,
+        consecutiveLoginDays: entity.consecutiveLoginDays,
+        totalLoginDays: entity.totalLoginDays,
+        matchProbabilityBoost: entity.matchProbabilityBoost,
+        isPremium: entity.isPremium,
+        premiumExpiresAt: entity.premiumExpiresAt,
         interests: entity.interests,
         preferences: entity.preferences,
         language: entity.language,
         timezone: entity.timezone,
+        socialLinks: entity.socialLinks,
+        karmaPoints: entity.karmaPoints,
         emailNotifications: entity.emailNotifications,
         pushNotifications: entity.pushNotifications,
         smsNotifications: entity.smsNotifications,
         marketingEmails: entity.marketingEmails,
-        socialLinks: entity.socialLinks,
-        karmaPoints: entity.karmaPoints,
+        fcmToken: entity.fcmToken,
         isEmailVerified: entity.isEmailVerified,
         isPhoneVerified: entity.isPhoneVerified,
         isProfileComplete: entity.isProfileComplete,

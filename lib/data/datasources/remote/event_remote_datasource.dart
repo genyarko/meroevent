@@ -60,12 +60,9 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     int? offset,
   }) async {
     try {
-      var query = _client
-          .from('events')
-          .select('*')
-          .order('start_datetime', ascending: true);
+      var query = _client.from('events').select('*');
 
-      // Apply filters
+      // Apply filters first
       if (category != null) {
         query = query.eq('category', category);
       }
@@ -89,16 +86,18 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         query = query.lte('end_datetime', endDate.toIso8601String());
       }
 
-      // Apply pagination
+      // Apply ordering and pagination
+      var orderedQuery = query.order('start_datetime', ascending: true);
+
       if (limit != null) {
-        query = query.limit(limit);
+        orderedQuery = orderedQuery.limit(limit);
       }
 
       if (offset != null) {
-        query = query.range(offset, offset + (limit ?? 20) - 1);
+        orderedQuery = orderedQuery.range(offset, offset + (limit ?? 20) - 1);
       }
 
-      final response = await query;
+      final response = await orderedQuery;
 
       return (response as List)
           .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
@@ -171,22 +170,24 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       var query = _client
           .from('events')
           .select('*')
-          .eq('organizer_id', organizerId)
-          .order('created_at', ascending: false);
+          .eq('organizer_id', organizerId);
 
       if (status != null) {
         query = query.eq('status', status);
       }
 
+      // Apply ordering and pagination
+      var orderedQuery = query.order('created_at', ascending: false);
+
       if (limit != null) {
-        query = query.limit(limit);
+        orderedQuery = orderedQuery.limit(limit);
       }
 
       if (offset != null) {
-        query = query.range(offset, offset + (limit ?? 20) - 1);
+        orderedQuery = orderedQuery.range(offset, offset + (limit ?? 20) - 1);
       }
 
-      final response = await query;
+      final response = await orderedQuery;
 
       return (response as List)
           .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
