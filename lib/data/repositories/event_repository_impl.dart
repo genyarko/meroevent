@@ -276,14 +276,114 @@ class EventRepositoryImpl implements EventRepository {
 
   @override
   Future<Either<Failure, List<Event>>> getFavoriteEvents(String userId) async {
-    // TODO: Implement favorite events logic with event_interactions table
-    return Left(GenericFailure(message: 'Not yet implemented'));
+    try {
+      final models = await remoteDataSource.getFavoriteEvents(userId);
+      return Right(models.map((model) => model.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(GenericFailure(message: e.toString()));
+    }
   }
 
   @override
-  Future<Either<Failure, void>> toggleLike(String eventId, String userId) async {
-    // TODO: Implement like/unlike logic with event_interactions table
-    return Left(GenericFailure(message: 'Not yet implemented'));
+  Future<Either<Failure, Map<String, dynamic>>> toggleLike(
+    String eventId,
+    String userId,
+  ) async {
+    try {
+      final result = await remoteDataSource.toggleLike(eventId, userId);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(GenericFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> toggleFavorite(
+    String eventId,
+    String userId,
+  ) async {
+    try {
+      final result = await remoteDataSource.toggleFavorite(eventId, userId);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(GenericFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> shareEvent(
+    String eventId,
+    String userId, {
+    String platform = 'link',
+  }) async {
+    try {
+      await remoteDataSource.recordShare(eventId, userId, platform: platform);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(GenericFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> checkLike(String eventId, String userId) async {
+    try {
+      final result = await remoteDataSource.checkLike(eventId, userId);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(GenericFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> checkFavorite(String eventId, String userId) async {
+    try {
+      final result = await remoteDataSource.checkFavorite(eventId, userId);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(GenericFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateAttendeeStatus(
+    String eventId,
+    String userId,
+    String status,
+  ) async {
+    try {
+      await remoteDataSource.updateAttendeeStatus(eventId, userId, status);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(GenericFailure(message: e.toString()));
+    }
   }
 
   @override

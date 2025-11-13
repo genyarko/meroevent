@@ -38,6 +38,15 @@ abstract class EventRemoteDataSource {
   Future<void> deleteEvent(String id);
   Future<void> incrementViewCount(String id);
   Future<void> incrementShareCount(String id);
+
+  // Event interactions
+  Future<Map<String, dynamic>> toggleLike(String eventId, String userId);
+  Future<Map<String, dynamic>> toggleFavorite(String eventId, String userId);
+  Future<void> recordShare(String eventId, String userId, {String platform});
+  Future<bool> checkLike(String eventId, String userId);
+  Future<bool> checkFavorite(String eventId, String userId);
+  Future<List<EventModel>> getFavoriteEvents(String userId, {int? limit});
+  Future<void> updateAttendeeStatus(String eventId, String userId, String status);
 }
 
 class EventRemoteDataSourceImpl implements EventRemoteDataSource {
@@ -331,7 +340,147 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   @override
   Future<void> incrementShareCount(String id) async {
     try {
-      await _client.rpc('increment_share_count', params: {'event_id': id});
+      await _client.rpc('increment_share_count', params: {'event_id_param': id});
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> toggleLike(String eventId, String userId) async {
+    try {
+      final response = await _client.rpc('toggle_event_like', params: {
+        'event_id_param': eventId,
+        'user_id_param': userId,
+      });
+      return response as Map<String, dynamic>;
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> toggleFavorite(String eventId, String userId) async {
+    try {
+      final response = await _client.rpc('toggle_event_favorite', params: {
+        'event_id_param': eventId,
+        'user_id_param': userId,
+      });
+      return response as Map<String, dynamic>;
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> recordShare(
+    String eventId,
+    String userId, {
+    String platform = 'link',
+  }) async {
+    try {
+      await _client.rpc('record_event_share', params: {
+        'event_id_param': eventId,
+        'user_id_param': userId,
+        'platform_param': platform,
+      });
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<bool> checkLike(String eventId, String userId) async {
+    try {
+      final response = await _client.rpc('check_event_like', params: {
+        'event_id_param': eventId,
+        'user_id_param': userId,
+      });
+      return response as bool;
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<bool> checkFavorite(String eventId, String userId) async {
+    try {
+      final response = await _client.rpc('check_event_favorite', params: {
+        'event_id_param': eventId,
+        'user_id_param': userId,
+      });
+      return response as bool;
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<EventModel>> getFavoriteEvents(
+    String userId, {
+    int? limit,
+  }) async {
+    try {
+      final response = await _client.rpc('get_user_favorite_events', params: {
+        'user_id_param': userId,
+        'result_limit': limit ?? 20,
+      });
+
+      return (response as List)
+          .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateAttendeeStatus(
+    String eventId,
+    String userId,
+    String status,
+  ) async {
+    try {
+      await _client.rpc('update_event_attendee_status', params: {
+        'event_id_param': eventId,
+        'user_id_param': userId,
+        'new_status': status,
+      });
     } on PostgrestException catch (e) {
       throw ServerException(
         message: e.message,

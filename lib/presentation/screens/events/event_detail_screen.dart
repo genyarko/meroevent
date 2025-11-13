@@ -46,13 +46,13 @@ class EventDetailScreen extends ConsumerWidget {
   }
 }
 
-class _EventDetailView extends StatelessWidget {
+class _EventDetailView extends ConsumerWidget {
   final Event event;
 
   const _EventDetailView({required this.event});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -86,20 +86,50 @@ class _EventDetailView extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.share),
-                onPressed: () {
-                  // TODO: Implement share
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Share feature coming soon')),
-                  );
+                onPressed: () async {
+                  try {
+                    await ref.read(eventInteractionProvider(event.id).notifier).shareEvent();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Event shared!')),
+                      );
+                    }
+                  } catch (e) {
+                    // User not authenticated, show message
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please login to share events')),
+                      );
+                    }
+                  }
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.favorite_border),
-                onPressed: () {
-                  // TODO: Implement favorite
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Favorite feature coming soon')),
-                  );
+              Consumer(
+                builder: (context, ref, child) {
+                  try {
+                    final interactionState = ref.watch(eventInteractionProvider(event.id));
+
+                    return IconButton(
+                      icon: Icon(
+                        interactionState.isFavorited
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                      ),
+                      onPressed: () {
+                        ref.read(eventInteractionProvider(event.id).notifier).toggleFavorite();
+                      },
+                    );
+                  } catch (e) {
+                    // User not authenticated
+                    return IconButton(
+                      icon: const Icon(Icons.favorite_border),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please login to favorite events')),
+                        );
+                      },
+                    );
+                  }
                 },
               ),
             ],
@@ -216,28 +246,69 @@ class _EventDetailView extends StatelessWidget {
                       const SizedBox(height: AppDimensions.spacingLarge),
 
                       // Stats
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStatItem(
-                            theme,
-                            Icons.people,
-                            event.attendeesCount.toString(),
-                            'Going',
-                          ),
-                          _buildStatItem(
-                            theme,
-                            Icons.favorite,
-                            event.likesCount.toString(),
-                            'Likes',
-                          ),
-                          _buildStatItem(
-                            theme,
-                            Icons.visibility,
-                            event.viewsCount.toString(),
-                            'Views',
-                          ),
-                        ],
+                      Consumer(
+                        builder: (context, ref, child) {
+                          try {
+                            final interactionState = ref.watch(eventInteractionProvider(event.id));
+                            final displayLikesCount = interactionState.likesCount > 0
+                                ? interactionState.likesCount
+                                : event.likesCount;
+
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildStatItem(
+                                  theme,
+                                  Icons.people,
+                                  event.attendeesCount.toString(),
+                                  'Going',
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    ref.read(eventInteractionProvider(event.id).notifier).toggleLike();
+                                  },
+                                  child: _buildStatItem(
+                                    theme,
+                                    interactionState.isLiked ? Icons.favorite : Icons.favorite_border,
+                                    displayLikesCount.toString(),
+                                    'Likes',
+                                  ),
+                                ),
+                                _buildStatItem(
+                                  theme,
+                                  Icons.visibility,
+                                  event.viewsCount.toString(),
+                                  'Views',
+                                ),
+                              ],
+                            );
+                          } catch (e) {
+                            // User not authenticated, show default view
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildStatItem(
+                                  theme,
+                                  Icons.people,
+                                  event.attendeesCount.toString(),
+                                  'Going',
+                                ),
+                                _buildStatItem(
+                                  theme,
+                                  Icons.favorite_border,
+                                  event.likesCount.toString(),
+                                  'Likes',
+                                ),
+                                _buildStatItem(
+                                  theme,
+                                  Icons.visibility,
+                                  event.viewsCount.toString(),
+                                  'Views',
+                                ),
+                              ],
+                            );
+                          }
+                        },
                       ),
                       const SizedBox(height: AppDimensions.spacingLarge),
 

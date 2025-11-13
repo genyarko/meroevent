@@ -7,6 +7,14 @@ import '../../domain/usecases/event/create_event.dart';
 import '../../domain/usecases/event/get_event_by_id.dart';
 import '../../domain/usecases/event/get_events.dart';
 import '../../domain/usecases/event/get_featured_events.dart';
+import '../../domain/usecases/event/toggle_event_like.dart';
+import '../../domain/usecases/event/toggle_event_favorite.dart';
+import '../../domain/usecases/event/share_event.dart';
+import '../../domain/usecases/event/check_event_like.dart';
+import '../../domain/usecases/event/check_event_favorite.dart';
+import '../../domain/usecases/event/get_favorite_events.dart';
+import '../../domain/usecases/event/update_attendee_status.dart';
+import '../providers/auth_provider.dart';
 
 /// Provider for EventRemoteDataSource
 final eventRemoteDataSourceProvider = Provider<EventRemoteDataSource>((ref) {
@@ -38,6 +46,41 @@ final getFeaturedEventsUseCaseProvider = Provider<GetFeaturedEvents>((ref) {
 /// Provider for CreateEvent use case
 final createEventUseCaseProvider = Provider<CreateEvent>((ref) {
   return CreateEvent(ref.watch(eventRepositoryProvider));
+});
+
+/// Provider for ToggleEventLike use case
+final toggleEventLikeUseCaseProvider = Provider<ToggleEventLike>((ref) {
+  return ToggleEventLike(repository: ref.watch(eventRepositoryProvider));
+});
+
+/// Provider for ToggleEventFavorite use case
+final toggleEventFavoriteUseCaseProvider = Provider<ToggleEventFavorite>((ref) {
+  return ToggleEventFavorite(repository: ref.watch(eventRepositoryProvider));
+});
+
+/// Provider for ShareEvent use case
+final shareEventUseCaseProvider = Provider<ShareEvent>((ref) {
+  return ShareEvent(repository: ref.watch(eventRepositoryProvider));
+});
+
+/// Provider for CheckEventLike use case
+final checkEventLikeUseCaseProvider = Provider<CheckEventLike>((ref) {
+  return CheckEventLike(repository: ref.watch(eventRepositoryProvider));
+});
+
+/// Provider for CheckEventFavorite use case
+final checkEventFavoriteUseCaseProvider = Provider<CheckEventFavorite>((ref) {
+  return CheckEventFavorite(repository: ref.watch(eventRepositoryProvider));
+});
+
+/// Provider for GetFavoriteEvents use case
+final getFavoriteEventsUseCaseProvider = Provider<GetFavoriteEvents>((ref) {
+  return GetFavoriteEvents(repository: ref.watch(eventRepositoryProvider));
+});
+
+/// Provider for UpdateAttendeeStatus use case
+final updateAttendeeStatusUseCaseProvider = Provider<UpdateAttendeeStatus>((ref) {
+  return UpdateAttendeeStatus(repository: ref.watch(eventRepositoryProvider));
 });
 
 /// Provider for featured events
@@ -273,3 +316,151 @@ class EventStateNotifier extends StateNotifier<EventState> {
     state = state.copyWith(errorMessage: null);
   }
 }
+
+/// Event interaction state
+class EventInteractionState {
+  final bool isLiked;
+  final bool isFavorited;
+  final int likesCount;
+  final bool isLoading;
+  final String? errorMessage;
+
+  const EventInteractionState({
+    this.isLiked = false,
+    this.isFavorited = false,
+    this.likesCount = 0,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  EventInteractionState copyWith({
+    bool? isLiked,
+    bool? isFavorited,
+    int? likesCount,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return EventInteractionState(
+      isLiked: isLiked ?? this.isLiked,
+      isFavorited: isFavorited ?? this.isFavorited,
+      likesCount: likesCount ?? this.likesCount,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+/// Event interaction notifier
+class EventInteractionNotifier extends StateNotifier<EventInteractionState> {
+  final EventRepository _repository;
+  final String _eventId;
+  final String _userId;
+
+  EventInteractionNotifier({
+    required EventRepository repository,
+    required String eventId,
+    required String userId,
+  })  : _repository = repository,
+        _eventId = eventId,
+        _userId = userId,
+        super(const EventInteractionState()) {
+    _loadInteractionState();
+  }
+
+  Future<void> _loadInteractionState() async {
+    state = state.copyWith(isLoading: true);
+
+    final likeResult = await _repository.checkLike(_eventId, _userId);
+    final favoriteResult = await _repository.checkFavorite(_eventId, _userId);
+
+    final isLiked = likeResult.fold((l) => false, (r) => r);
+    final isFavorited = favoriteResult.fold((l) => false, (r) => r);
+
+    state = state.copyWith(
+      isLiked: isLiked,
+      isFavorited: isFavorited,
+      isLoading: false,
+    );
+  }
+
+  Future<void> toggleLike() async {
+    final previousState = state;
+
+    // Optimistic update
+    state = state.copyWith(
+      isLiked: !state.isLiked,
+      likesCount: state.isLiked ? state.likesCount - 1 : state.likesCount + 1,
+    );
+
+    final result = await _repository.toggleLike(_eventId, _userId);
+
+    result.fold(
+      (failure) {
+        // Revert on failure
+        state = previousState.copyWith(errorMessage: failure.message);
+      },
+      (data) {
+        state = state.copyWith(
+          isLiked: data['is_liked'] as bool,
+          likesCount: data['likes_count'] as int,
+          errorMessage: null,
+        );
+      },
+    );
+  }
+
+  Future<void> toggleFavorite() async {
+    final previousState = state;
+
+    // Optimistic update
+    state = state.copyWith(isFavorited: !state.isFavorited);
+
+    final result = await _repository.toggleFavorite(_eventId, _userId);
+
+    result.fold(
+      (failure) {
+        // Revert on failure
+        state = previousState.copyWith(errorMessage: failure.message);
+      },
+      (data) {
+        state = state.copyWith(
+          isFavorited: data['is_favorited'] as bool,
+          errorMessage: null,
+        );
+      },
+    );
+  }
+
+  Future<void> shareEvent({String platform = 'link'}) async {
+    final result = await _repository.shareEvent(_eventId, _userId, platform: platform);
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(errorMessage: failure.message);
+      },
+      (_) {
+        // Share successful
+        state = state.copyWith(errorMessage: null);
+      },
+    );
+  }
+}
+
+/// Provider for event interaction state (per event)
+final eventInteractionProvider = StateNotifierProvider.autoDispose
+    .family<EventInteractionNotifier, EventInteractionState, String>(
+  (ref, eventId) {
+    final repository = ref.watch(eventRepositoryProvider);
+    final user = ref.watch(currentUserProvider).value;
+
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    return EventInteractionNotifier(
+      repository: repository,
+      eventId: eventId,
+      userId: user.id,
+    );
+  },
+);
