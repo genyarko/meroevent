@@ -132,7 +132,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            widget.event.categoryName,
+                            widget.event.category ?? 'Event',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

@@ -213,8 +213,8 @@ class TicketDetailScreen extends ConsumerWidget {
                         children: [
                           _buildDetailRow(theme, 'Ticket Type', 'General Admission'),
                           const Divider(height: 20),
-                          if (ticket.assignedToName != null)
-                            _buildDetailRow(theme, 'Assigned To', ticket.assignedToName!),
+                          if (ticket.assignedName != null)
+                            _buildDetailRow(theme, 'Assigned To', ticket.assignedName!),
                           if (ticket.seatNumber != null) ...[
                             const Divider(height: 20),
                             _buildDetailRow(theme, 'Seat', ticket.seatNumber!),
@@ -319,7 +319,7 @@ class TicketDetailScreen extends ConsumerWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: color.shade700,
+          color: Color.lerp(color, Colors.black, 0.3)!,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),

@@ -384,8 +384,8 @@ class _TicketValidationDialog extends ConsumerWidget {
                   const SizedBox(height: 8),
                   _buildInfoRow(theme, 'Ticket #', ticket.ticketNumber),
                   const SizedBox(height: 8),
-                  if (ticket.assignedToName != null)
-                    _buildInfoRow(theme, 'Holder', ticket.assignedToName!),
+                  if (ticket.assignedName != null)
+                    _buildInfoRow(theme, 'Holder', ticket.assignedName!),
                   const SizedBox(height: 8),
                   _buildInfoRow(
                     theme,
