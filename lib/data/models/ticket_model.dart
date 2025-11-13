@@ -261,16 +261,19 @@ class TicketOrderModel {
   final String orderNumber;
   @JsonKey(name: 'event_id')
   final String eventId;
+  @JsonKey(name: 'ticket_type_id')
+  final String ticketTypeId;
   @JsonKey(name: 'buyer_id')
   final String buyerId;
-  @JsonKey(name: 'payment_method')
-  final String? paymentMethod;
-  @JsonKey(name: 'payment_status')
-  final String paymentStatus;
-  @JsonKey(name: 'stripe_payment_intent_id')
-  final String? stripePaymentIntentId;
-  @JsonKey(name: 'karma_used')
-  final int karmaUsed;
+  @JsonKey(name: 'buyer_email')
+  final String buyerEmail;
+  @JsonKey(name: 'buyer_name')
+  final String? buyerName;
+  @JsonKey(name: 'buyer_phone')
+  final String? buyerPhone;
+  final int quantity;
+  @JsonKey(name: 'unit_price')
+  final double unitPrice;
   final double subtotal;
   @JsonKey(name: 'tax_amount')
   final double taxAmount;
@@ -281,53 +284,69 @@ class TicketOrderModel {
   @JsonKey(name: 'total_amount')
   final double totalAmount;
   final String currency;
+  final String status;
+  @JsonKey(name: 'payment_method')
+  final String? paymentMethod;
+  @JsonKey(name: 'payment_status')
+  final String paymentStatus;
+  @JsonKey(name: 'stripe_payment_intent_id')
+  final String? stripePaymentIntentId;
+  @JsonKey(name: 'paid_at')
+  final DateTime? paidAt;
   @JsonKey(name: 'promo_code')
   final String? promoCode;
   @JsonKey(name: 'discount_id')
   final String? discountId;
-  final String status;
+  @JsonKey(name: 'karma_used')
+  final int karmaUsed;
   @JsonKey(name: 'confirmation_code')
   final String? confirmationCode;
-  @JsonKey(name: 'buyer_email')
-  final String buyerEmail;
-  @JsonKey(name: 'buyer_phone')
-  final String? buyerPhone;
   @JsonKey(name: 'billing_address')
   final Map<String, dynamic>? billingAddress;
   final String? notes;
+  final Map<String, dynamic>? metadata;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
-  @JsonKey(name: 'completed_at')
+  @JsonKey(name: 'updated_at', includeIfNull: false)
+  final DateTime? updatedAt;
+  @JsonKey(name: 'completed_at', includeIfNull: false)
   final DateTime? completedAt;
-  @JsonKey(name: 'cancelled_at')
+  @JsonKey(name: 'cancelled_at', includeIfNull: false)
   final DateTime? cancelledAt;
-  @JsonKey(name: 'refunded_at')
+  @JsonKey(name: 'refunded_at', includeIfNull: false)
   final DateTime? refundedAt;
 
   const TicketOrderModel({
     required this.id,
     required this.orderNumber,
     required this.eventId,
+    required this.ticketTypeId,
     required this.buyerId,
-    this.paymentMethod,
-    this.paymentStatus = 'pending',
-    this.stripePaymentIntentId,
-    this.karmaUsed = 0,
+    required this.buyerEmail,
+    this.buyerName,
+    this.buyerPhone,
+    required this.quantity,
+    required this.unitPrice,
     required this.subtotal,
     this.taxAmount = 0,
     this.serviceFee = 0,
     this.discountAmount = 0,
     required this.totalAmount,
     this.currency = 'USD',
+    this.status = 'pending',
+    this.paymentMethod,
+    this.paymentStatus = 'pending',
+    this.stripePaymentIntentId,
+    this.paidAt,
     this.promoCode,
     this.discountId,
-    this.status = 'pending',
+    this.karmaUsed = 0,
     this.confirmationCode,
-    required this.buyerEmail,
-    this.buyerPhone,
     this.billingAddress,
     this.notes,
+    this.metadata,
     required this.createdAt,
+    this.updatedAt,
     this.completedAt,
     this.cancelledAt,
     this.refundedAt,
@@ -342,26 +361,33 @@ class TicketOrderModel {
         id: id,
         orderNumber: orderNumber,
         eventId: eventId,
+        ticketTypeId: ticketTypeId,
         buyerId: buyerId,
-        paymentMethod: paymentMethod,
-        paymentStatus: paymentStatus,
-        stripePaymentIntentId: stripePaymentIntentId,
-        karmaUsed: karmaUsed,
+        buyerEmail: buyerEmail,
+        buyerName: buyerName,
+        buyerPhone: buyerPhone,
+        quantity: quantity,
+        unitPrice: unitPrice,
         subtotal: subtotal,
         taxAmount: taxAmount,
         serviceFee: serviceFee,
         discountAmount: discountAmount,
         totalAmount: totalAmount,
         currency: currency,
+        status: status,
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentStatus,
+        stripePaymentIntentId: stripePaymentIntentId,
+        paidAt: paidAt,
         promoCode: promoCode,
         discountId: discountId,
-        status: status,
+        karmaUsed: karmaUsed,
         confirmationCode: confirmationCode,
-        buyerEmail: buyerEmail,
-        buyerPhone: buyerPhone,
         billingAddress: billingAddress,
         notes: notes,
+        metadata: metadata,
         createdAt: createdAt,
+        updatedAt: updatedAt,
         completedAt: completedAt,
         cancelledAt: cancelledAt,
         refundedAt: refundedAt,
@@ -371,26 +397,33 @@ class TicketOrderModel {
         id: entity.id,
         orderNumber: entity.orderNumber,
         eventId: entity.eventId,
+        ticketTypeId: entity.ticketTypeId,
         buyerId: entity.buyerId,
-        paymentMethod: entity.paymentMethod,
-        paymentStatus: entity.paymentStatus,
-        stripePaymentIntentId: entity.stripePaymentIntentId,
-        karmaUsed: entity.karmaUsed,
+        buyerEmail: entity.buyerEmail,
+        buyerName: entity.buyerName,
+        buyerPhone: entity.buyerPhone,
+        quantity: entity.quantity,
+        unitPrice: entity.unitPrice,
         subtotal: entity.subtotal,
         taxAmount: entity.taxAmount,
         serviceFee: entity.serviceFee,
         discountAmount: entity.discountAmount,
         totalAmount: entity.totalAmount,
         currency: entity.currency,
+        status: entity.status,
+        paymentMethod: entity.paymentMethod,
+        paymentStatus: entity.paymentStatus,
+        stripePaymentIntentId: entity.stripePaymentIntentId,
+        paidAt: entity.paidAt,
         promoCode: entity.promoCode,
         discountId: entity.discountId,
-        status: entity.status,
+        karmaUsed: entity.karmaUsed,
         confirmationCode: entity.confirmationCode,
-        buyerEmail: entity.buyerEmail,
-        buyerPhone: entity.buyerPhone,
         billingAddress: entity.billingAddress,
         notes: entity.notes,
+        metadata: entity.metadata,
         createdAt: entity.createdAt,
+        updatedAt: entity.updatedAt,
         completedAt: entity.completedAt,
         cancelledAt: entity.cancelledAt,
         refundedAt: entity.refundedAt,

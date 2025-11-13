@@ -48,6 +48,7 @@ class Event extends Equatable {
   final int? capacity;
   final int? remainingCapacity;
   final bool isSoldOut;
+  final int maxTicketsPerPurchase; // Maximum tickets per purchase (default 10)
 
   // Status
   final String status; // draft, published, cancelled, completed
@@ -113,6 +114,7 @@ class Event extends Equatable {
     this.capacity,
     this.remainingCapacity,
     this.isSoldOut = false,
+    this.maxTicketsPerPurchase = 10,
     required this.status,
     this.isPublished = false,
     this.isFeatured = false,

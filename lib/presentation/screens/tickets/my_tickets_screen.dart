@@ -19,37 +19,26 @@ class MyTicketsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Tickets'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.refresh(myTicketsProvider),
+          ),
+        ],
       ),
       body: ticketsAsync.when(
-        data: (tickets) => tickets.isEmpty
-            ? _buildEmptyState(context, theme)
-            : _buildTicketList(context, theme, tickets, ref),
+        data: (tickets) => _buildContent(context, theme, tickets, ref),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64),
-              const SizedBox(height: AppDimensions.spacingMedium),
-              Text('Error loading tickets: $error'),
-              const SizedBox(height: AppDimensions.spacingSmall),
-              FilledButton(
-                onPressed: () => ref.invalidate(myTicketsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+        error: (error, stack) => _buildErrorState(context, theme, error.toString(), ref),
       ),
     );
   }
 
-  Widget _buildTicketList(
-    BuildContext context,
-    ThemeData theme,
-    List<Ticket> tickets,
-    WidgetRef ref,
-  ) {
+  Widget _buildContent(BuildContext context, ThemeData theme, List<Ticket> tickets, WidgetRef ref) {
+    if (tickets.isEmpty) {
+      return _buildEmptyState(context, theme);
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(myTicketsProvider);
@@ -58,7 +47,8 @@ class MyTicketsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(AppDimensions.paddingMedium),
         itemCount: tickets.length,
         itemBuilder: (context, index) {
-          return _buildTicketCard(context, theme, tickets[index], ref);
+          final ticket = tickets[index];
+          return _buildTicketCard(context, theme, ticket, ref);
         },
       ),
     );
@@ -105,25 +95,22 @@ class MyTicketsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTicketCard(
-    BuildContext context,
-    ThemeData theme,
-    Ticket ticket,
-    WidgetRef ref,
-  ) {
+  Widget _buildTicketCard(BuildContext context, ThemeData theme, Ticket ticket, WidgetRef ref) {
+    // Fetch event data for this ticket
     final eventAsync = ref.watch(eventByIdProvider(ticket.eventId));
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
-      child: InkWell(
-        onTap: () {
-          context.push('/tickets/${ticket.id}');
-        },
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-          child: eventAsync.when(
-            data: (event) => Column(
+    return eventAsync.when(
+      data: (event) => Card(
+        margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
+        child: InkWell(
+          onTap: () {
+            // TODO: Navigate to ticket detail screen with QR code
+            context.push('/events/${ticket.eventId}');
+          },
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -137,14 +124,11 @@ class MyTicketsScreen extends ConsumerWidget {
                               width: 80,
                               height: 80,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stack) {
+                              errorBuilder: (context, error, stackTrace) {
                                 return Container(
                                   width: 80,
                                   height: 80,
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.surfaceVariant,
-                                    borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
-                                  ),
+                                  color: theme.colorScheme.surfaceVariant,
                                   child: const Icon(Icons.event),
                                 );
                               },
@@ -152,10 +136,7 @@ class MyTicketsScreen extends ConsumerWidget {
                           : Container(
                               width: 80,
                               height: 80,
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceVariant,
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
-                              ),
+                              color: theme.colorScheme.surfaceVariant,
                               child: const Icon(Icons.event),
                             ),
                     ),
@@ -180,11 +161,23 @@ class MyTicketsScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            event.location ?? 'Location TBA',
-                            style: theme.textTheme.bodySmall,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 14,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  event.location ?? 'No location',
+                                  style: theme.textTheme.bodySmall,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -209,23 +202,130 @@ class MyTicketsScreen extends ConsumerWidget {
                         const SizedBox(height: 2),
                         Text(
                           ticket.ticketNumber,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'monospace',
+                          ),
                         ),
                       ],
                     ),
-                    _buildStatusChip(theme, ticket.status),
+                    _buildTicketStatus(theme, ticket),
                   ],
                 ),
               ],
             ),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: CircularProgressIndicator(),
+          ),
+        ),
+      ),
+      loading: () => Card(
+        margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+          child: Row(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+              const SizedBox(width: AppDimensions.spacingMedium),
+              const Expanded(
+                child: Text('Loading event details...'),
               ),
             ),
             error: (error, stack) => Text('Error loading event: $error'),
           ),
+        ),
+      ),
+      error: (error, stack) => Card(
+        margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+          child: Text('Error loading ticket: ${error.toString()}'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTicketStatus(ThemeData theme, Ticket ticket) {
+    Color statusColor;
+    String statusText;
+
+    if (ticket.isCheckedIn) {
+      statusColor = Colors.blue;
+      statusText = 'Used';
+    } else if (ticket.isCancelled) {
+      statusColor = Colors.red;
+      statusText = 'Cancelled';
+    } else if (ticket.isExpired) {
+      statusColor = Colors.orange;
+      statusText = 'Expired';
+    } else if (ticket.isValid) {
+      statusColor = Colors.green;
+      statusText = 'Active';
+    } else {
+      statusColor = Colors.grey;
+      statusText = ticket.status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
+      ),
+      child: Text(
+        statusText,
+        style: TextStyle(
+          color: Color.lerp(statusColor, Colors.black, 0.3)!,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, ThemeData theme, String error, WidgetRef ref) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(height: AppDimensions.spacingMedium),
+            Text(
+              'Error Loading Tickets',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: AppDimensions.spacingSmall),
+            Text(
+              error,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDimensions.spacingLarge),
+            FilledButton.icon(
+              onPressed: () => ref.refresh(myTicketsProvider),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
         ),
       ),
     );

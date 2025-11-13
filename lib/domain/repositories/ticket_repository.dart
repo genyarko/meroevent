@@ -38,6 +38,9 @@ abstract class TicketRepository {
   /// Get ticket orders by user
   Future<Either<Failure, List<TicketOrder>>> getMyOrders(String userId);
 
+  /// Create a ticket
+  Future<Either<Failure, Ticket>> createTicket(Ticket ticket);
+
   /// Get tickets for an order
   Future<Either<Failure, List<Ticket>>> getOrderTickets(String orderId);
 

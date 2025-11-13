@@ -70,6 +70,8 @@ class EventModel {
   final int? remainingCapacity;
   @JsonKey(name: 'is_sold_out')
   final bool isSoldOut;
+  @JsonKey(name: 'max_tickets_per_purchase')
+  final int maxTicketsPerPurchase;
 
   // Status
   final String status;
@@ -151,6 +153,7 @@ class EventModel {
     this.capacity,
     this.remainingCapacity,
     this.isSoldOut = false,
+    this.maxTicketsPerPurchase = 10,
     required this.status,
     this.isPublished = false,
     this.isFeatured = false,
@@ -216,6 +219,7 @@ class EventModel {
       capacity: capacity,
       remainingCapacity: remainingCapacity,
       isSoldOut: isSoldOut,
+      maxTicketsPerPurchase: maxTicketsPerPurchase,
       status: status,
       isPublished: isPublished,
       isFeatured: isFeatured,
@@ -275,6 +279,7 @@ class EventModel {
       capacity: entity.capacity,
       remainingCapacity: entity.remainingCapacity,
       isSoldOut: entity.isSoldOut,
+      maxTicketsPerPurchase: entity.maxTicketsPerPurchase,
       status: entity.status,
       isPublished: entity.isPublished,
       isFeatured: entity.isFeatured,
