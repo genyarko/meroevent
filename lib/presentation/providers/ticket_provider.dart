@@ -5,6 +5,8 @@ import '../../domain/entities/ticket.dart';
 import '../../domain/repositories/ticket_repository.dart';
 import '../../domain/usecases/ticket/get_my_tickets.dart';
 import '../../domain/usecases/ticket/purchase_tickets.dart';
+import '../../domain/usecases/ticket/check_in_ticket.dart';
+import '../../domain/usecases/ticket/get_ticket_by_qr_code.dart';
 import '../providers/auth_provider.dart';
 
 /// Provider for TicketRemoteDataSource
@@ -27,6 +29,16 @@ final purchaseTicketsUseCaseProvider = Provider<PurchaseTickets>((ref) {
 /// Provider for GetMyTickets use case
 final getMyTicketsUseCaseProvider = Provider<GetMyTickets>((ref) {
   return GetMyTickets(ref.watch(ticketRepositoryProvider));
+});
+
+/// Provider for CheckInTicket use case
+final checkInTicketUseCaseProvider = Provider<CheckInTicket>((ref) {
+  return CheckInTicket(ref.watch(ticketRepositoryProvider));
+});
+
+/// Provider for GetTicketByQRCode use case
+final getTicketByQRCodeUseCaseProvider = Provider<GetTicketByQRCode>((ref) {
+  return GetTicketByQRCode(ref.watch(ticketRepositoryProvider));
 });
 
 /// Provider for user's tickets
@@ -179,5 +191,176 @@ final ticketPurchaseProvider = StateNotifierProvider.autoDispose<TicketPurchaseN
   (ref) {
     final repository = ref.watch(ticketRepositoryProvider);
     return TicketPurchaseNotifier(repository);
+  },
+);
+
+/// Ticket validation state
+class TicketValidationState {
+  final bool isLoading;
+  final String? error;
+  final Ticket? scannedTicket;
+  final Ticket? checkedInTicket;
+  final String? successMessage;
+
+  const TicketValidationState({
+    this.isLoading = false,
+    this.error,
+    this.scannedTicket,
+    this.checkedInTicket,
+    this.successMessage,
+  });
+
+  TicketValidationState copyWith({
+    bool? isLoading,
+    String? error,
+    Ticket? scannedTicket,
+    Ticket? checkedInTicket,
+    String? successMessage,
+  }) {
+    return TicketValidationState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      scannedTicket: scannedTicket ?? this.scannedTicket,
+      checkedInTicket: checkedInTicket ?? this.checkedInTicket,
+      successMessage: successMessage,
+    );
+  }
+}
+
+/// Ticket validation notifier
+class TicketValidationNotifier extends StateNotifier<TicketValidationState> {
+  final TicketRepository _repository;
+  final String _validatorId;
+
+  TicketValidationNotifier({
+    required TicketRepository repository,
+    required String validatorId,
+  })  : _repository = repository,
+        _validatorId = validatorId,
+        super(const TicketValidationState());
+
+  /// Scan and validate a ticket by QR code
+  Future<void> scanTicket(String qrCode) async {
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      successMessage: null,
+    );
+
+    try {
+      // Get ticket by QR code
+      final result = await _repository.getTicketByQRCode(qrCode);
+
+      result.fold(
+        (failure) {
+          state = state.copyWith(
+            isLoading: false,
+            error: failure.message,
+          );
+        },
+        (ticket) {
+          // Check if ticket is already checked in
+          if (ticket.isCheckedIn) {
+            state = state.copyWith(
+              isLoading: false,
+              scannedTicket: ticket,
+              error: 'Ticket already checked in on ${ticket.checkedInAt}',
+            );
+          } else if (ticket.status.toLowerCase() == 'cancelled') {
+            state = state.copyWith(
+              isLoading: false,
+              scannedTicket: ticket,
+              error: 'Ticket has been cancelled',
+            );
+          } else if (ticket.status.toLowerCase() == 'transferred') {
+            state = state.copyWith(
+              isLoading: false,
+              scannedTicket: ticket,
+              error: 'Ticket has been transferred',
+            );
+          } else {
+            // Ticket is valid
+            state = state.copyWith(
+              isLoading: false,
+              scannedTicket: ticket,
+              error: null,
+            );
+          }
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Check in a ticket
+  Future<bool> checkInTicket(String qrCode, {String? location}) async {
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      successMessage: null,
+    );
+
+    try {
+      final result = await _repository.checkInTicket(
+        qrCode: qrCode,
+        validatorId: _validatorId,
+        location: location,
+      );
+
+      return result.fold(
+        (failure) {
+          state = state.copyWith(
+            isLoading: false,
+            error: failure.message,
+          );
+          return false;
+        },
+        (ticket) {
+          state = state.copyWith(
+            isLoading: false,
+            checkedInTicket: ticket,
+            successMessage: 'Ticket checked in successfully!',
+          );
+          return true;
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      return false;
+    }
+  }
+
+  /// Reset state
+  void reset() {
+    state = const TicketValidationState();
+  }
+
+  /// Clear error
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+}
+
+/// Provider for ticket validation state
+final ticketValidationProvider = StateNotifierProvider.autoDispose<TicketValidationNotifier, TicketValidationState>(
+  (ref) {
+    final repository = ref.watch(ticketRepositoryProvider);
+    final user = ref.watch(currentUserProvider).value;
+
+    if (user == null) {
+      throw Exception('User must be authenticated to validate tickets');
+    }
+
+    return TicketValidationNotifier(
+      repository: repository,
+      validatorId: user.id,
+    );
   },
 );
