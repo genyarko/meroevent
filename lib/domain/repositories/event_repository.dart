@@ -81,9 +81,24 @@ abstract class EventRepository {
   Future<Either<Failure, List<Event>>> getFavoriteEvents(String userId);
 
   /// Like/unlike an event
-  Future<Either<Failure, void>> toggleLike(String eventId, String userId);
+  Future<Either<Failure, Map<String, dynamic>>> toggleLike(String eventId, String userId);
 
-  /// Share an event (increment share count)
+  /// Favorite/unfavorite an event
+  Future<Either<Failure, Map<String, dynamic>>> toggleFavorite(String eventId, String userId);
+
+  /// Share an event (increment share count and record share)
+  Future<Either<Failure, void>> shareEvent(String eventId, String userId, {String platform});
+
+  /// Check if user has liked an event
+  Future<Either<Failure, bool>> checkLike(String eventId, String userId);
+
+  /// Check if user has favorited an event
+  Future<Either<Failure, bool>> checkFavorite(String eventId, String userId);
+
+  /// Update attendee status (interested, going, etc.)
+  Future<Either<Failure, void>> updateAttendeeStatus(String eventId, String userId, String status);
+
+  /// Increment share count (legacy - use shareEvent instead)
   Future<Either<Failure, void>> incrementShareCount(String eventId);
 
   /// Increment view count
