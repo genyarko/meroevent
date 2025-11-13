@@ -338,10 +338,11 @@ class SocialRemoteDataSourceImpl implements SocialRemoteDataSource {
     try {
       final response = await _supabase
           .from('user_follows')
-          .select('id', const FetchOptions(count: CountOption.exact))
-          .eq('following_id', userId);
+          .select('id')
+          .eq('following_id', userId)
+          .count();
 
-      return (response as PostgrestList).count;
+      return response.count;
     } catch (e) {
       return 0;
     }
@@ -352,10 +353,11 @@ class SocialRemoteDataSourceImpl implements SocialRemoteDataSource {
     try {
       final response = await _supabase
           .from('user_follows')
-          .select('id', const FetchOptions(count: CountOption.exact))
-          .eq('follower_id', userId);
+          .select('id')
+          .eq('follower_id', userId)
+          .count();
 
-      return (response as PostgrestList).count;
+      return response.count;
     } catch (e) {
       return 0;
     }
@@ -459,11 +461,12 @@ class SocialRemoteDataSourceImpl implements SocialRemoteDataSource {
     try {
       final response = await _supabase
           .from('event_attendees')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('event_id', eventId)
-          .eq('status', 'going');
+          .eq('status', 'going')
+          .count();
 
-      return (response as PostgrestList).count;
+      return response.count;
     } catch (e) {
       return 0;
     }
@@ -474,11 +477,12 @@ class SocialRemoteDataSourceImpl implements SocialRemoteDataSource {
     try {
       final response = await _supabase
           .from('event_attendees')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('event_id', eventId)
-          .eq('status', 'interested');
+          .eq('status', 'interested')
+          .count();
 
-      return (response as PostgrestList).count;
+      return response.count;
     } catch (e) {
       return 0;
     }
