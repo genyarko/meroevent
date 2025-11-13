@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../domain/entities/event.dart';
 import '../../providers/event_provider.dart';
+import '../../providers/ticket_provider.dart';
+import '../../providers/auth_provider.dart';
 
 /// Screen for purchasing tickets to an event
 class TicketPurchaseScreen extends ConsumerStatefulWidget {
@@ -281,32 +283,97 @@ class _TicketPurchaseScreenState extends ConsumerState<TicketPurchaseScreen> {
     );
   }
 
-  void _proceedToCheckout(BuildContext context, Event event) {
-    // TODO: Implement actual payment processing
-    // For now, show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          event.isFree
-              ? 'Registration successful!'
-              : 'Payment integration coming soon',
-        ),
-        action: SnackBarAction(
-          label: 'View Tickets',
-          onPressed: () {
-            context.go('/tickets');
-          },
-        ),
+  Future<void> _proceedToCheckout(BuildContext context, Event event) async {
+    final user = ref.read(currentUserProvider).value;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please login to purchase tickets')),
+      );
+      return;
+    }
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
       ),
     );
 
-    if (event.isFree) {
-      // Navigate to tickets screen after a delay
-      Future.delayed(const Duration(seconds: 1), () {
-        if (context.mounted) {
-          context.go('/tickets');
-        }
-      });
+    // Get ticket types for the event (using first available type or creating a default one)
+    final ticketTypesAsync = await ref.read(eventTicketTypesProvider(event.id).future);
+
+    String ticketTypeId;
+    if (ticketTypesAsync.isEmpty) {
+      // Event has no ticket types defined, show error
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No ticket types available for this event')),
+        );
+      }
+      return;
+    } else {
+      // Use the first ticket type
+      ticketTypeId = ticketTypesAsync.first.id;
+    }
+
+    // Purchase tickets
+    final success = await ref.read(ticketPurchaseProvider.notifier).purchaseTickets(
+      eventId: event.id,
+      ticketTypeId: ticketTypeId,
+      quantity: _ticketQuantity,
+      buyerId: user.id,
+      buyerEmail: user.email,
+    );
+
+    if (context.mounted) {
+      Navigator.of(context).pop(); // Close loading dialog
+
+      if (success) {
+        final purchaseState = ref.read(ticketPurchaseProvider);
+
+        // Show success dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            icon: const Icon(Icons.check_circle, color: Colors.green, size: 64),
+            title: const Text('Success!'),
+            content: Text(
+              event.isFree
+                  ? 'You have successfully registered for this event!'
+                  : 'Your tickets have been purchased successfully!\n\n'
+                      '${purchaseState.generatedTickets?.length ?? _ticketQuantity} ticket(s) have been generated.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  context.go('/tickets');
+                },
+                child: const Text('View My Tickets'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Done'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        final purchaseState = ref.read(ticketPurchaseProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(purchaseState.error ?? 'Failed to purchase tickets'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }
