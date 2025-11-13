@@ -236,7 +236,8 @@ class MyTicketsScreen extends ConsumerWidget {
               const Expanded(
                 child: Text('Loading event details...'),
               ),
-            ],
+            ),
+            error: (error, stack) => Text('Error loading event: $error'),
           ),
         ),
       ),
@@ -325,6 +326,53 @@ class MyTicketsScreen extends ConsumerWidget {
               label: const Text('Retry'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(ThemeData theme, String status) {
+    Color color;
+    String label;
+
+    switch (status.toLowerCase()) {
+      case 'valid':
+      case 'active':
+        color = Colors.green;
+        label = 'Valid';
+        break;
+      case 'used':
+        color = Colors.orange;
+        label = 'Used';
+        break;
+      case 'cancelled':
+        color = Colors.red;
+        label = 'Cancelled';
+        break;
+      case 'transferred':
+        color = Colors.blue;
+        label = 'Transferred';
+        break;
+      default:
+        color = Colors.grey;
+        label = status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color.shade700,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
         ),
       ),
     );
