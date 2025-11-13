@@ -13,6 +13,8 @@ import '../../presentation/screens/organizer/organizer_dashboard_screen.dart';
 import '../../presentation/screens/profile/profile_screen.dart';
 import '../../presentation/screens/search/search_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
+import '../../presentation/screens/tickets/ticket_purchase_screen.dart';
+import '../../presentation/screens/tickets/my_tickets_screen.dart';
 
 /// Provider for GoRouter configuration
 final routerProvider = Provider<GoRouter>((ref) {
@@ -74,6 +76,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/events/:id/tickets',
+        builder: (context, state) {
+          final eventId = state.pathParameters['id']!;
+          return TicketPurchaseScreen(eventId: eventId);
+        },
+      ),
+      GoRoute(
         path: '/create-event',
         builder: (context, state) => const CreateEventScreen(),
       ),
@@ -86,6 +95,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/organizer',
         builder: (context, state) => const OrganizerDashboardScreen(),
+      ),
+
+      // Ticket routes
+      GoRoute(
+        path: '/tickets',
+        builder: (context, state) => const MyTicketsScreen(),
       ),
 
       // Profile routes

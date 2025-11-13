@@ -48,10 +48,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => context.push('/search'),
+            tooltip: 'Search',
+          ),
+          IconButton(
+            icon: const Icon(Icons.confirmation_number_outlined),
+            onPressed: () => context.push('/tickets'),
+            tooltip: 'My Tickets',
           ),
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () => context.push('/profile'),
+            tooltip: 'Profile',
           ),
         ],
       ),

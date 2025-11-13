@@ -110,16 +110,16 @@ class PaymentException extends AppException {
   String toString() => 'PaymentException(message: $message, code: $code)';
 }
 
-/// Storage-related exceptions
-class StorageException extends AppException {
-  const StorageException({
+/// Local storage-related exceptions (renamed to avoid conflict with Supabase StorageException)
+class LocalStorageException extends AppException {
+  const LocalStorageException({
     required super.message,
     super.code,
     super.data,
   });
 
   @override
-  String toString() => 'StorageException(message: $message, code: $code)';
+  String toString() => 'LocalStorageException(message: $message, code: $code)';
 }
 
 /// Timeout exceptions

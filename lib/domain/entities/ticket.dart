@@ -310,13 +310,15 @@ class TicketOrder extends Equatable {
   final String id;
   final String orderNumber;
   final String eventId;
+  final String ticketTypeId;
   final String buyerId;
+  final String buyerEmail;
+  final String? buyerName;
+  final String? buyerPhone;
 
-  // Payment
-  final String? paymentMethod; // card, karma, mixed
-  final String paymentStatus; // pending, processing, completed, failed, refunded
-  final String? stripePaymentIntentId;
-  final int karmaUsed;
+  // Order details
+  final int quantity;
+  final double unitPrice;
 
   // Amounts
   final double subtotal;
@@ -326,22 +328,29 @@ class TicketOrder extends Equatable {
   final double totalAmount;
   final String currency;
 
+  // Status
+  final String status; // pending, confirmed, cancelled, refunded
+
+  // Payment
+  final String? paymentMethod; // card, karma, mixed
+  final String paymentStatus; // pending, processing, completed, failed, refunded
+  final String? stripePaymentIntentId;
+  final DateTime? paidAt;
+
   // Discount
   final String? promoCode;
   final String? discountId;
-
-  // Status
-  final String status; // pending, confirmed, cancelled, refunded
-  final String? confirmationCode;
+  final int karmaUsed;
 
   // Metadata
-  final String buyerEmail;
-  final String? buyerPhone;
+  final String? confirmationCode;
   final Map<String, dynamic>? billingAddress;
   final String? notes;
+  final Map<String, dynamic>? metadata;
 
   // Timestamps
   final DateTime createdAt;
+  final DateTime? updatedAt;
   final DateTime? completedAt;
   final DateTime? cancelledAt;
   final DateTime? refundedAt;
@@ -350,26 +359,33 @@ class TicketOrder extends Equatable {
     required this.id,
     required this.orderNumber,
     required this.eventId,
+    required this.ticketTypeId,
     required this.buyerId,
-    this.paymentMethod,
-    this.paymentStatus = 'pending',
-    this.stripePaymentIntentId,
-    this.karmaUsed = 0,
+    required this.buyerEmail,
+    this.buyerName,
+    this.buyerPhone,
+    required this.quantity,
+    required this.unitPrice,
     required this.subtotal,
     this.taxAmount = 0,
     this.serviceFee = 0,
     this.discountAmount = 0,
     required this.totalAmount,
     this.currency = 'USD',
+    this.status = 'pending',
+    this.paymentMethod,
+    this.paymentStatus = 'pending',
+    this.stripePaymentIntentId,
+    this.paidAt,
     this.promoCode,
     this.discountId,
-    this.status = 'pending',
+    this.karmaUsed = 0,
     this.confirmationCode,
-    required this.buyerEmail,
-    this.buyerPhone,
     this.billingAddress,
     this.notes,
+    this.metadata,
     required this.createdAt,
+    this.updatedAt,
     this.completedAt,
     this.cancelledAt,
     this.refundedAt,
@@ -391,26 +407,33 @@ class TicketOrder extends Equatable {
         id,
         orderNumber,
         eventId,
+        ticketTypeId,
         buyerId,
-        paymentMethod,
-        paymentStatus,
-        stripePaymentIntentId,
-        karmaUsed,
+        buyerEmail,
+        buyerName,
+        buyerPhone,
+        quantity,
+        unitPrice,
         subtotal,
         taxAmount,
         serviceFee,
         discountAmount,
         totalAmount,
         currency,
+        status,
+        paymentMethod,
+        paymentStatus,
+        stripePaymentIntentId,
+        paidAt,
         promoCode,
         discountId,
-        status,
+        karmaUsed,
         confirmationCode,
-        buyerEmail,
-        buyerPhone,
         billingAddress,
         notes,
+        metadata,
         createdAt,
+        updatedAt,
         completedAt,
         cancelledAt,
         refundedAt,

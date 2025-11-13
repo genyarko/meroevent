@@ -16,6 +16,7 @@ abstract class TicketRemoteDataSource {
   Future<List<TicketOrderModel>> getOrdersByUser(String userId);
   Future<void> updateOrderStatus(String orderId, String status);
 
+  Future<TicketModel> createTicket(TicketModel ticket);
   Future<List<TicketModel>> getOrderTickets(String orderId);
   Future<List<TicketModel>> getUserTickets(String userId);
   Future<TicketModel> getTicket(String ticketId);
@@ -78,9 +79,15 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   @override
   Future<TicketTypeModel> createTicketType(TicketTypeModel ticketType) async {
     try {
+      final json = ticketType.toJson();
+      // Remove id field if it's empty to let database generate it
+      if (json['id'] == '' || json['id'] == null) {
+        json.remove('id');
+      }
+
       final response = await _client
           .from('ticket_types')
-          .insert(ticketType.toJson())
+          .insert(json)
           .select()
           .single();
 
@@ -133,9 +140,15 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   @override
   Future<TicketOrderModel> createOrder(TicketOrderModel order) async {
     try {
+      final json = order.toJson();
+      // Remove id field if it's empty to let database generate it
+      if (json['id'] == '' || json['id'] == null) {
+        json.remove('id');
+      }
+
       final response = await _client
           .from('ticket_orders')
-          .insert(order.toJson())
+          .insert(json)
           .select()
           .single();
 
@@ -202,6 +215,32 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
           .from('ticket_orders')
           .update({'status': status})
           .eq('id', orderId);
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        code: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<TicketModel> createTicket(TicketModel ticket) async {
+    try {
+      final json = ticket.toJson();
+      // Remove id field if it's empty to let database generate it
+      if (json['id'] == '' || json['id'] == null) {
+        json.remove('id');
+      }
+
+      final response = await _client
+          .from('tickets')
+          .insert(json)
+          .select()
+          .single();
+
+      return TicketModel.fromJson(response);
     } on PostgrestException catch (e) {
       throw ServerException(
         message: e.message,
