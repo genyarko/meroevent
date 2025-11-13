@@ -236,8 +236,7 @@ class MyTicketsScreen extends ConsumerWidget {
               const Expanded(
                 child: Text('Loading event details...'),
               ),
-            ),
-            error: (error, stack) => Text('Error loading event: $error'),
+            ],
           ),
         ),
       ),
@@ -370,7 +369,7 @@ class MyTicketsScreen extends ConsumerWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: color.shade700,
+          color: Color.lerp(color, Colors.black, 0.3)!,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),
